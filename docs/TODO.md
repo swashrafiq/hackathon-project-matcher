@@ -40,7 +40,7 @@ This checklist is designed for very small, tangible increments suitable for AI-a
   - [x] Add CI workflow for install/lint/test/build.
   - [x] Add dependency audit in CI.
   - [x] Document CI usage and failure handling.
-  - [ ] Verify first GitHub Actions run after pushing to remote.
+  - [x] Verify first GitHub Actions run after pushing to remote.
 
 ### Later
 - [ ] Step 3 - Deployable Hello World
