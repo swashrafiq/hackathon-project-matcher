@@ -2,28 +2,92 @@
 
 This checklist is designed for very small, tangible increments suitable for AI-assisted development.
 
-## Working Rules (apply to every step)
-- [ ] Keep each PR/task small (target: 1 behavior change).
-- [ ] Add/update tests for each new behavior before marking step done.
-- [ ] Add at least one security check in each step (validation, access control, or safe defaults).
-- [ ] Update docs in each step (`README.md` and/or `docs/` notes).
+## Working Rules for AI-Assisted Incremental Delivery
+- [ ] Keep each PR/task very small (target: 1 behavior change, ideally <= 120 lines changed).
+- [ ] Define a single acceptance check before coding each task (what must be true when done).
+- [ ] Add or update tests for every new behavior before marking a task complete.
+- [ ] Run local checks before commit (`test`, `lint`, `build`), or document why a check was skipped.
+- [ ] Include at least one security action per step (input validation, auth rule, safe defaults, or dependency check).
+- [ ] Include a documentation update per step (`README.md` and/or relevant file under `docs/`).
+- [ ] Use clear branch and commit naming tied to one task only (no mixed-purpose commits).
+- [ ] Record API/UI contract changes immediately (request/response shape, validation, error states).
+- [ ] Add a rollback note for risky changes (what to revert if deployment fails).
+- [ ] Definition of Done for each step: behavior works, tests pass, CI passes, security check done, docs updated.
+
+### Reusable Task Template (copy per step)
+- [ ] **Goal:** One-sentence outcome for this task.
+- [ ] **Scope:** Files/components/endpoints to change (and explicitly out-of-scope items).
+- [ ] **Acceptance Check:** Single observable condition that proves completion.
+- [ ] **Implementation:** Smallest possible code change to satisfy acceptance.
+- [ ] **Tests:** New/updated unit/integration/E2E checks.
+- [ ] **Security:** Validation/auth/safe-default action for this task.
+- [ ] **Docs:** README/docs/API update for this task.
+- [ ] **Verification:** Run `test`, `lint`, `build` and note results.
+- [ ] **Rollback:** Quick revert plan if the change causes regressions.
+- [ ] **Done:** CI green, review complete, ready to merge/deploy.
+
+## Execution Board (Steps 1-3)
+
+### Now
+- [x] Step 1 - Project initialization + Hello World
+  - [x] Create app scaffold and run locally.
+  - [x] Replace starter UI with hello message.
+  - [x] Add one hello render test.
+  - [x] Add `.gitignore`, `.env.example`, and README quick-start.
+
+### Next
+- [ ] Step 2 - CI setup early
+  - [x] Add CI workflow for install/lint/test/build.
+  - [x] Add dependency audit in CI.
+  - [x] Document CI usage and failure handling.
+  - [ ] Verify first GitHub Actions run after pushing to remote.
+
+### Later
+- [ ] Step 3 - Deployable Hello World
+  - [ ] Configure hosting and first deploy from `main`.
+  - [ ] Run deployment smoke checks.
+  - [ ] Document deploy URL and rollback steps.
 
 ## Phase 0 - Bootstrap and First Deploy
 
 ### Step 1 - Project initialization + Hello World (smallest possible start)
-- [ ] Initialize Vite React + TypeScript app.
-- [ ] Confirm app runs locally.
-- [ ] Replace starter screen with minimal "Hello Hackathon Project Matcher".
-- [ ] Add a basic test that checks the hello text renders.
-- [ ] Security: add `.gitignore`, ensure no secrets committed, add `.env.example` placeholder.
-- [ ] Documentation: add `README.md` quick-start and run/test commands.
+- [x] Initialize Vite React + TypeScript app.
+- [x] Confirm app runs locally.
+- [x] Replace starter screen with minimal "Hello Hackathon Project Matcher".
+- [x] Add a basic test that checks the hello text renders.
+- [x] Security: add `.gitignore`, ensure no secrets committed, add `.env.example` placeholder.
+- [x] Documentation: add `README.md` quick-start and run/test commands.
+
+#### Step 1 Example Using the Template
+- [x] **Goal:** Running app shows "Hello Hackathon Project Matcher" locally and in tests.
+- [x] **Scope:** Initialize frontend app files; update main UI component; add one render test; add basic docs.
+- [x] **Acceptance Check:** `npm run dev` shows hello text and `npm test` passes with one hello test.
+- [x] **Implementation:** Scaffold with Vite React TypeScript and replace starter content only.
+- [x] **Tests:** Add one unit/render test that asserts hello text is visible.
+- [x] **Security:** Add `.gitignore`, create `.env.example`, and confirm no real secret values exist.
+- [x] **Docs:** Add README quick-start (`install`, `dev`, `test`, `build`).
+- [x] **Verification:** Run `npm test`, `npm run lint` (if available), and `npm run build`.
+- [ ] **Rollback:** Revert Step 1 commit if setup breaks future steps.
+- [x] **Done:** Local run works, test passes, docs updated, ready for Step 2.
 
 ### Step 2 - CI setup early (required)
-- [ ] Add CI workflow (GitHub Actions or equivalent) to run install, build, test, lint.
-- [ ] Add lint + format scripts.
-- [ ] Ensure CI runs on pull requests and main branch pushes.
-- [ ] Security: add dependency audit step (`npm audit` or equivalent policy).
-- [ ] Documentation: add CI badge and workflow notes in `README.md`.
+- [x] Add CI workflow (GitHub Actions or equivalent) to run install, build, test, lint.
+- [x] Add lint + format scripts.
+- [x] Ensure CI runs on pull requests and main branch pushes.
+- [x] Security: add dependency audit step (`npm audit` or equivalent policy).
+- [x] Documentation: add CI badge and workflow notes in `README.md`.
+
+#### Step 2 Example Using the Template
+- [ ] **Goal:** Every push/PR automatically validates code quality and build health.
+- [ ] **Scope:** Add CI workflow file, package scripts for lint/test/build, and README CI notes.
+- [ ] **Acceptance Check:** A PR run shows successful `install`, `lint`, `test`, and `build` jobs.
+- [ ] **Implementation:** Create one simple pipeline first; avoid parallel matrix complexity initially.
+- [ ] **Tests:** Verify CI includes existing tests and fails if a test is intentionally broken.
+- [ ] **Security:** Add dependency audit command and fail policy for high/critical vulnerabilities (as agreed).
+- [ ] **Docs:** Add CI workflow description, badge, and troubleshooting notes to README.
+- [ ] **Verification:** Trigger CI from a small docs/code change and confirm all checks pass.
+- [ ] **Rollback:** Revert workflow file if CI blocks all merges unexpectedly, then re-add incrementally.
+- [ ] **Done:** CI green on PR and `main`, security audit active, docs updated.
 
 ### Step 3 - Deployable Hello World (required early deploy)
 - [ ] Configure hosting target (e.g., Vercel/Netlify/GitHub Pages).
@@ -32,6 +96,18 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [ ] Add smoke test checklist for deployed URL (page loads, no console errors).
 - [ ] Security: enforce HTTPS deployment and remove source maps in production if needed.
 - [ ] Documentation: add deployment URL and rollback basics.
+
+#### Step 3 Example Using the Template
+- [ ] **Goal:** A public URL serves the Hello World app from the `main` branch.
+- [ ] **Scope:** Hosting config, build/deploy settings, and deployment docs only.
+- [ ] **Acceptance Check:** Live URL loads "Hello Hackathon Project Matcher" and basic smoke checks pass.
+- [ ] **Implementation:** Use default hosting settings first, then add minimal custom config only if required.
+- [ ] **Tests:** Add a smoke checklist (manual now, automated later) for load/render/no-console-error.
+- [ ] **Security:** Confirm HTTPS is enforced and no secrets are exposed in deployment config/logs.
+- [ ] **Docs:** Add live URL, deploy steps, environment variable policy, and rollback command/process.
+- [ ] **Verification:** Run one fresh deployment from latest `main` and validate on desktop + mobile width.
+- [ ] **Rollback:** Re-deploy prior stable commit/tag if release has a blocking issue.
+- [ ] **Done:** Deployment is reachable, smoke checks pass, and release notes/docs are updated.
 
 ## Phase 1 - UI Foundation with Mocked Data
 
