@@ -43,10 +43,10 @@ This checklist is designed for very small, tangible increments suitable for AI-a
   - [x] Verify first GitHub Actions run after pushing to remote.
 
 ### Later
-- [ ] Step 3 - Deployable Hello World
-  - [ ] Configure hosting and first deploy from `main`.
-  - [ ] Run deployment smoke checks.
-  - [ ] Document deploy URL and rollback steps.
+- [x] Step 3 - Deployable Hello World
+  - [x] Configure hosting and first deploy from `main`.
+  - [x] Run deployment smoke checks.
+  - [x] Document deploy URL and rollback steps.
 
 ## Phase 0 - Bootstrap and First Deploy
 
@@ -90,24 +90,24 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [ ] **Done:** CI green on PR and `main`, security audit active, docs updated.
 
 ### Step 3 - Deployable Hello World (required early deploy)
-- [ ] Configure hosting target (e.g., Vercel/Netlify/GitHub Pages).
-- [ ] Add production build command and deploy config.
-- [ ] Deploy current Hello World successfully.
-- [ ] Add smoke test checklist for deployed URL (page loads, no console errors).
-- [ ] Security: enforce HTTPS deployment and remove source maps in production if needed.
-- [ ] Documentation: add deployment URL and rollback basics.
+- [x] Configure hosting target (e.g., Vercel/Netlify/GitHub Pages).
+- [x] Add production build command and deploy config.
+- [x] Deploy current Hello World successfully.
+- [x] Add smoke test checklist for deployed URL (page loads, no console errors).
+- [x] Security: enforce HTTPS deployment and remove source maps in production if needed.
+- [x] Documentation: add deployment URL and rollback basics.
 
 #### Step 3 Example Using the Template
-- [ ] **Goal:** A public URL serves the Hello World app from the `main` branch.
-- [ ] **Scope:** Hosting config, build/deploy settings, and deployment docs only.
-- [ ] **Acceptance Check:** Live URL loads "Hello Hackathon Project Matcher" and basic smoke checks pass.
-- [ ] **Implementation:** Use default hosting settings first, then add minimal custom config only if required.
-- [ ] **Tests:** Add a smoke checklist (manual now, automated later) for load/render/no-console-error.
-- [ ] **Security:** Confirm HTTPS is enforced and no secrets are exposed in deployment config/logs.
-- [ ] **Docs:** Add live URL, deploy steps, environment variable policy, and rollback command/process.
-- [ ] **Verification:** Run one fresh deployment from latest `main` and validate on desktop + mobile width.
-- [ ] **Rollback:** Re-deploy prior stable commit/tag if release has a blocking issue.
-- [ ] **Done:** Deployment is reachable, smoke checks pass, and release notes/docs are updated.
+- [x] **Goal:** A public URL serves the Hello World app from the `main` branch.
+- [x] **Scope:** Hosting config, build/deploy settings, and deployment docs only.
+- [x] **Acceptance Check:** Live URL loads "Hello Hackathon Project Matcher" and basic smoke checks pass.
+- [x] **Implementation:** Use default hosting settings first, then add minimal custom config only if required.
+- [x] **Tests:** Add a smoke checklist (manual now, automated later) for load/render/no-console-error.
+- [x] **Security:** Confirm HTTPS is enforced and no secrets are exposed in deployment config/logs.
+- [x] **Docs:** Add live URL, deploy steps, environment variable policy, and rollback command/process.
+- [x] **Verification:** Run one fresh deployment from latest `main` and validate on desktop + mobile width.
+- [x] **Rollback:** Re-deploy prior stable commit/tag if release has a blocking issue.
+- [x] **Done:** Deployment is reachable, smoke checks pass, and release notes/docs are updated.
 
 ## Phase 1 - UI Foundation with Mocked Data
 
