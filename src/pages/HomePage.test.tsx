@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { HomePage } from './HomePage'
 import type { ProjectReadModel } from '../types/models'
 
@@ -81,7 +81,68 @@ describe('HomePage', () => {
     ).toBeInTheDocument()
     expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
 
-    const joinButtons = screen.getAllByRole('button', { name: 'Join project (mocked)' })
+    const joinButtons = screen.getAllByRole('button', { name: 'Join project' })
     expect(joinButtons.every((button) => button.hasAttribute('disabled'))).toBe(true)
+  })
+
+  it('calls join handler and shows success message', async () => {
+    const loadProjects = async (): Promise<ProjectReadModel[]> => sampleProjects
+    const onJoinProject = vi.fn(async () => 'joined' as const)
+
+    render(
+      <MemoryRouter>
+        <HomePage
+          loadProjects={loadProjects}
+          canPerformProjectActions
+          participantSession={{
+            id: 'user-test',
+            name: 'Joiner',
+            email: 'joiner@example.com',
+            role: 'participant',
+            mainProjectId: null,
+          }}
+          onJoinProject={onJoinProject}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Join project' })[0])
+
+    expect(onJoinProject).toHaveBeenCalledWith('proj-smart-schedule')
+    expect(await screen.findByText('Project joined successfully.')).toBeInTheDocument()
+  })
+
+  it('shows join error returned by backend workflow', async () => {
+    const loadProjects = async (): Promise<ProjectReadModel[]> => sampleProjects
+    const onJoinProject = vi.fn(async () => {
+      throw new Error('You already have a main project. Leave or switch before joining another.')
+    })
+
+    render(
+      <MemoryRouter>
+        <HomePage
+          loadProjects={loadProjects}
+          canPerformProjectActions
+          participantSession={{
+            id: 'user-test',
+            name: 'Joiner',
+            email: 'joiner@example.com',
+            role: 'participant',
+            mainProjectId: 'proj-smart-schedule',
+          }}
+          onJoinProject={onJoinProject}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Join project' })[0])
+
+    expect(
+      await screen.findByText(
+        'You already have a main project. Leave or switch before joining another.',
+      ),
+    ).toBeInTheDocument()
   })
 })

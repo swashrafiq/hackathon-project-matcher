@@ -126,4 +126,41 @@ describe('backend health endpoint', () => {
     expect(third.status).toBe(429)
     expect(third.body.error).toBe('Too many participant attempts. Try again soon.')
   })
+
+  it('joins a project and updates participant main project id', async () => {
+    const app = createApp()
+    const uniqueEmail = `join.${Date.now()}@example.com`
+
+    const created = await request(app).post('/participants').send({
+      name: 'Join Ready',
+      email: uniqueEmail,
+    })
+    expect(created.status).toBe(201)
+
+    const participantId = created.body.participant.id as string
+    const joinResponse = await request(app).post('/projects/proj-team-finder/join').send({
+      participantId,
+    })
+
+    expect(joinResponse.status).toBe(200)
+    expect(joinResponse.body.source).toBe('joined')
+    expect(joinResponse.body.participant.mainProjectId).toBe('proj-team-finder')
+
+    const projectAfterJoin = await request(app).get('/projects/proj-team-finder')
+    expect(projectAfterJoin.status).toBe(200)
+    expect(projectAfterJoin.body.project.memberCount).toBe(3)
+  })
+
+  it('rejects joining another project when participant already has main project', async () => {
+    const app = createApp()
+
+    const response = await request(app).post('/projects/proj-team-finder/join').send({
+      participantId: 'user-smart-schedule-lead',
+    })
+
+    expect(response.status).toBe(409)
+    expect(response.body.error).toBe(
+      'You already have a main project. Leave or switch before joining another.',
+    )
+  })
 })
