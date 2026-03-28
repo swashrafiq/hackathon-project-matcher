@@ -303,6 +303,51 @@ Frontend integration:
 - Home page Join button now calls backend join API
 - Join feedback and conflict error messages are shown in UI
 - Session `mainProjectId` is updated in state and local storage from API response
+
+## Capacity Enforcement (Step 15)
+
+Join capacity rule:
+
+- max members per project is 5
+- join/switch attempts use an atomic guarded update (`member_count < 5`) to prevent overfill
+- when full, backend returns `409` with `Project is full.`
+
+Frontend behavior:
+
+- Join and Switch actions are disabled when the target project reaches 5 members
+- card helper text clearly shows `Project is full (max 5 members).`
+
+## Leave Main Project (Step 16)
+
+Leave endpoint:
+
+- `POST /projects/:projectId/leave` with JSON body `{ participantId }`
+- returns `200` + `{ source: "left" }` on success
+- returns `409` if participant tries leaving a project that is not their current main project
+
+Flow behavior:
+
+- backend decrements the current project's `member_count` and clears user `mainProjectId` in one transaction
+- frontend shows `Give up current project` action on the current main project card
+
+## Switch Main Project (Step 17)
+
+Switch endpoint:
+
+- `POST /projects/:projectId/switch` with JSON body `{ participantId }`
+- returns `200` + `{ source: "switched" }` on success
+- returns `409` when target project is full
+
+Transactional behavior:
+
+- switch executes leave-old + join-new atomically
+- if join-new fails (for example target full), transaction rolls back and the user keeps the old main project
+
+Frontend behavior:
+
+- when user already has a main project, non-main cards show `Switch to this project`
+- successful switch updates session `mainProjectId` and refreshes project counters
+
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.

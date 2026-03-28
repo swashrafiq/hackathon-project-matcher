@@ -5,7 +5,12 @@ import { createParticipant, getParticipantByEmail } from './db/participantsRepos
 import { runMigrations } from './db/migrate'
 import { seedDevelopmentData } from './db/seed'
 import { getProjectById, listProjects } from './db/projectsRepository'
-import { JoinProjectError, joinParticipantToProject } from './db/joinRepository'
+import {
+  JoinProjectError,
+  joinParticipantToProject,
+  leaveParticipantProject,
+  switchParticipantProject,
+} from './db/joinRepository'
 
 const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
 const PROJECT_ID_PATTERN = /^[a-z0-9][a-z0-9-]{1,62}$/
@@ -14,6 +19,15 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function sanitizeText(value: string): string {
   return value.replace(/[<>"']/g, '').trim()
+}
+
+function getParticipantIdFromBody(body: unknown): string {
+  const rawParticipantId =
+    typeof (body as { participantId?: unknown })?.participantId === 'string'
+      ? (body as { participantId: string }).participantId
+      : ''
+
+  return sanitizeText(rawParticipantId)
 }
 
 interface ParticipantRateLimitEntry {
@@ -150,8 +164,7 @@ export function createApp() {
 
   app.post('/projects/:projectId/join', (req, res) => {
     const { projectId } = req.params
-    const rawParticipantId = typeof req.body?.participantId === 'string' ? req.body.participantId : ''
-    const participantId = sanitizeText(rawParticipantId)
+    const participantId = getParticipantIdFromBody(req.body)
 
     if (!PROJECT_ID_PATTERN.test(projectId)) {
       res.status(400).json({ error: 'Invalid project id format.' })
@@ -168,6 +181,11 @@ export function createApp() {
       res.status(200).json(result)
     } catch (error) {
       if (error instanceof JoinProjectError) {
+        if (error.code === 'project_full') {
+          res.status(409).json({ error: error.message })
+          return
+        }
+
         if (error.code === 'already_has_main_project') {
           res.status(409).json({ error: error.message })
           return
@@ -185,6 +203,83 @@ export function createApp() {
       }
 
       res.status(500).json({ error: 'Unable to join project right now.' })
+    }
+  })
+
+  app.post('/projects/:projectId/leave', (req, res) => {
+    const { projectId } = req.params
+    const participantId = getParticipantIdFromBody(req.body)
+
+    if (!PROJECT_ID_PATTERN.test(projectId)) {
+      res.status(400).json({ error: 'Invalid project id format.' })
+      return
+    }
+
+    if (!USER_ID_PATTERN.test(participantId)) {
+      res.status(400).json({ error: 'Invalid participant id format.' })
+      return
+    }
+
+    try {
+      const result = leaveParticipantProject(participantId, projectId)
+      res.status(200).json(result)
+    } catch (error) {
+      if (error instanceof JoinProjectError) {
+        if (error.code === 'not_current_main_project') {
+          res.status(409).json({ error: error.message })
+          return
+        }
+
+        if (error.code === 'project_not_found' || error.code === 'participant_not_found') {
+          res.status(404).json({ error: error.message })
+          return
+        }
+
+        if (error.code === 'membership_state_invalid') {
+          res.status(409).json({ error: error.message })
+          return
+        }
+      }
+
+      res.status(500).json({ error: 'Unable to leave project right now.' })
+    }
+  })
+
+  app.post('/projects/:projectId/switch', (req, res) => {
+    const { projectId } = req.params
+    const participantId = getParticipantIdFromBody(req.body)
+
+    if (!PROJECT_ID_PATTERN.test(projectId)) {
+      res.status(400).json({ error: 'Invalid project id format.' })
+      return
+    }
+
+    if (!USER_ID_PATTERN.test(participantId)) {
+      res.status(400).json({ error: 'Invalid participant id format.' })
+      return
+    }
+
+    try {
+      const result = switchParticipantProject(participantId, projectId)
+      res.status(200).json(result)
+    } catch (error) {
+      if (error instanceof JoinProjectError) {
+        if (
+          error.code === 'project_full' ||
+          error.code === 'no_main_project' ||
+          error.code === 'membership_state_invalid'
+        ) {
+          res.status(409).json({ error: error.message })
+          return
+        }
+
+        if (error.code === 'project_not_found' || error.code === 'participant_not_found') {
+          res.status(404).json({ error: error.message })
+          return
+        }
+      }
+
+      res.status(500).json({ error: 'Unable to switch project right now.' })
     }
   })
 

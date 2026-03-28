@@ -4,7 +4,9 @@ import { Link, Route, Routes } from 'react-router-dom'
 import { HomePage } from './pages/HomePage'
 import { ProjectDetailsPage } from './pages/ProjectDetailsPage'
 import { joinProject } from './api/joinProject'
+import { leaveProject } from './api/leaveProject'
 import { submitParticipantEntry } from './api/participants'
+import { switchProject } from './api/switchProject'
 import {
   type ParticipantSession,
   isValidEmail,
@@ -130,6 +132,50 @@ function App() {
     return response.source
   }
 
+  async function handleLeaveProject(projectId: string): Promise<'left'> {
+    if (!participantSession) {
+      throw new Error('Please enter your name and email first.')
+    }
+
+    const response = await leaveProject(projectId, participantSession.id)
+    const nextSession: ParticipantSession = {
+      ...participantSession,
+      mainProjectId: response.participant.mainProjectId,
+    }
+
+    setParticipantSession(nextSession)
+    try {
+      window.localStorage.setItem(PARTICIPANT_SESSION_STORAGE_KEY, JSON.stringify(nextSession))
+    } catch {
+      // Ignore storage errors; in-memory session still works.
+    }
+
+    return response.source
+  }
+
+  async function handleSwitchProject(
+    projectId: string,
+  ): Promise<'switched' | 'already_joined'> {
+    if (!participantSession) {
+      throw new Error('Please enter your name and email first.')
+    }
+
+    const response = await switchProject(projectId, participantSession.id)
+    const nextSession: ParticipantSession = {
+      ...participantSession,
+      mainProjectId: response.participant.mainProjectId,
+    }
+
+    setParticipantSession(nextSession)
+    try {
+      window.localStorage.setItem(PARTICIPANT_SESSION_STORAGE_KEY, JSON.stringify(nextSession))
+    } catch {
+      // Ignore storage errors; in-memory session still works.
+    }
+
+    return response.source
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -219,6 +265,8 @@ function App() {
                   canPerformProjectActions={Boolean(participantSession)}
                   participantSession={participantSession}
                   onJoinProject={handleJoinProject}
+                  onLeaveProject={handleLeaveProject}
+                  onSwitchProject={handleSwitchProject}
                 />
               }
             />

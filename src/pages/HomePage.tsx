@@ -10,6 +10,8 @@ interface HomePageProps {
   canPerformProjectActions?: boolean
   participantSession?: ParticipantSession | null
   onJoinProject?: (projectId: string) => Promise<'joined' | 'already_joined'>
+  onLeaveProject?: (projectId: string) => Promise<'left'>
+  onSwitchProject?: (projectId: string) => Promise<'switched' | 'already_joined'>
 }
 
 export function HomePage({
@@ -17,13 +19,15 @@ export function HomePage({
   canPerformProjectActions = true,
   participantSession = null,
   onJoinProject,
+  onLeaveProject,
+  onSwitchProject,
 }: HomePageProps) {
   const [projects, setProjects] = useState<ProjectReadModel[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [joinError, setJoinError] = useState<string | null>(null)
   const [joinMessage, setJoinMessage] = useState<string | null>(null)
-  const [joiningProjectId, setJoiningProjectId] = useState<string | null>(null)
+  const [submittingProjectId, setSubmittingProjectId] = useState<string | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -61,36 +65,67 @@ export function HomePage({
     }
   }, [loadProjects])
 
-  async function handleJoinProject(projectId: string) {
-    if (!onJoinProject) {
+  async function handleProjectAction(projectId: string) {
+    if (!participantSession) {
+      setJoinError('Please enter your name and email first.')
       return
     }
 
+    const isCurrentMainProject = participantSession.mainProjectId === projectId
+    const actionKind =
+      participantSession.mainProjectId === null
+        ? 'join'
+        : isCurrentMainProject
+          ? 'leave'
+          : 'switch'
+
     setJoinError(null)
     setJoinMessage(null)
-    setJoiningProjectId(projectId)
+    setSubmittingProjectId(projectId)
 
     try {
-      const source = await onJoinProject(projectId)
+      let source: 'joined' | 'already_joined' | 'left' | 'switched'
+      if (actionKind === 'join') {
+        if (!onJoinProject) {
+          return
+        }
+        source = await onJoinProject(projectId)
+      } else if (actionKind === 'leave') {
+        if (!onLeaveProject) {
+          return
+        }
+        source = await onLeaveProject(projectId)
+      } else {
+        if (!onSwitchProject) {
+          return
+        }
+        source = await onSwitchProject(projectId)
+      }
+
       const latestProjects = await loadProjects()
       setProjects(latestProjects)
-      setJoinMessage(
-        source === 'already_joined'
-          ? 'You are already joined to this project.'
-          : 'Project joined successfully.',
-      )
+
+      if (source === 'already_joined') {
+        setJoinMessage('You are already joined to this project.')
+      } else if (actionKind === 'leave') {
+        setJoinMessage('You left your current main project.')
+      } else if (actionKind === 'switch') {
+        setJoinMessage('Main project switched successfully.')
+      } else {
+        setJoinMessage('Project joined successfully.')
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to join project right now.'
       setJoinError(message)
     } finally {
-      setJoiningProjectId(null)
+      setSubmittingProjectId(null)
     }
   }
 
   return (
     <section>
       <h1>Hello Hackathon Project Matcher</h1>
-      <p>Step 14 in progress: join actions now call backend API rules.</p>
+      <p>Steps 15-17 complete: capacity, leave, and switch membership flows are live.</p>
       <p>
         Configured backend base URL: <code>{getApiBaseUrl()}</code>
       </p>
@@ -115,13 +150,24 @@ export function HomePage({
       ) : (
         <div className="project-grid">
           {projects.map((project) => (
+            // Action type depends on current participant state.
             <ProjectCard
               key={project.id}
               project={project}
               canPerformProjectActions={canPerformProjectActions}
               isCurrentMainProject={participantSession?.mainProjectId === project.id}
-              isJoining={joiningProjectId === project.id}
-              onJoinProject={handleJoinProject}
+              isProjectFull={project.memberCount >= 5}
+              actionKind={
+                !participantSession
+                  ? 'join'
+                  : participantSession.mainProjectId === null
+                    ? 'join'
+                    : participantSession.mainProjectId === project.id
+                      ? 'leave'
+                      : 'switch'
+              }
+              isSubmittingAction={submittingProjectId === project.id}
+              onProjectAction={handleProjectAction}
             />
           ))}
         </div>
