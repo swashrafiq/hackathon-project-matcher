@@ -113,10 +113,98 @@ describe('HomePage', () => {
     expect(await screen.findByText('Project joined successfully.')).toBeInTheDocument()
   })
 
-  it('shows join error returned by backend workflow', async () => {
+  it('shows disabled Join button and helper note when project is full', async () => {
+    const loadProjects = async (): Promise<ProjectReadModel[]> => [
+      {
+        ...sampleProjects[0],
+        memberCount: 5,
+      },
+    ]
+
+    render(
+      <MemoryRouter>
+        <HomePage
+          loadProjects={loadProjects}
+          canPerformProjectActions
+          participantSession={{
+            id: 'user-test',
+            name: 'Joiner',
+            email: 'joiner@example.com',
+            role: 'participant',
+            mainProjectId: null,
+          }}
+          onJoinProject={vi.fn(async () => 'joined' as const)}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Join project' })).toBeDisabled()
+    expect(screen.getByText('Project is full (max 5 members).')).toBeInTheDocument()
+  })
+
+  it('calls leave handler for current main project', async () => {
     const loadProjects = async (): Promise<ProjectReadModel[]> => sampleProjects
-    const onJoinProject = vi.fn(async () => {
-      throw new Error('You already have a main project. Leave or switch before joining another.')
+    const onLeaveProject = vi.fn(async () => 'left' as const)
+
+    render(
+      <MemoryRouter>
+        <HomePage
+          loadProjects={loadProjects}
+          canPerformProjectActions
+          participantSession={{
+            id: 'user-test',
+            name: 'Joiner',
+            email: 'joiner@example.com',
+            role: 'participant',
+            mainProjectId: 'proj-smart-schedule',
+          }}
+          onLeaveProject={onLeaveProject}
+          onSwitchProject={vi.fn(async () => 'switched' as const)}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Give up current project' }))
+
+    expect(onLeaveProject).toHaveBeenCalledWith('proj-smart-schedule')
+    expect(await screen.findByText('You left your current main project.')).toBeInTheDocument()
+  })
+
+  it('calls switch handler for non-main project and shows success', async () => {
+    const loadProjects = async (): Promise<ProjectReadModel[]> => sampleProjects
+    const onSwitchProject = vi.fn(async () => 'switched' as const)
+
+    render(
+      <MemoryRouter>
+        <HomePage
+          loadProjects={loadProjects}
+          canPerformProjectActions
+          participantSession={{
+            id: 'user-test',
+            name: 'Joiner',
+            email: 'joiner@example.com',
+            role: 'participant',
+            mainProjectId: 'proj-smart-schedule',
+          }}
+          onLeaveProject={vi.fn(async () => 'left' as const)}
+          onSwitchProject={onSwitchProject}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to this project' }))
+
+    expect(onSwitchProject).toHaveBeenCalledWith('proj-team-finder')
+    expect(await screen.findByText('Main project switched successfully.')).toBeInTheDocument()
+  })
+
+  it('shows switch/join error returned by backend workflow', async () => {
+    const loadProjects = async (): Promise<ProjectReadModel[]> => sampleProjects
+    const onSwitchProject = vi.fn(async () => {
+      throw new Error('Project is full.')
     })
 
     render(
@@ -131,18 +219,15 @@ describe('HomePage', () => {
             role: 'participant',
             mainProjectId: 'proj-smart-schedule',
           }}
-          onJoinProject={onJoinProject}
+          onLeaveProject={vi.fn(async () => 'left' as const)}
+          onSwitchProject={onSwitchProject}
         />
       </MemoryRouter>,
     )
 
     expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Join project' })[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to this project' }))
 
-    expect(
-      await screen.findByText(
-        'You already have a main project. Leave or switch before joining another.',
-      ),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Project is full.')).toBeInTheDocument()
   })
 })

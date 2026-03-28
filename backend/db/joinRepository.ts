@@ -16,16 +16,32 @@ interface ProjectExistsRow {
 }
 
 export type JoinResultSource = 'joined' | 'already_joined'
+export type LeaveResultSource = 'left'
+export type SwitchResultSource = 'switched' | 'already_joined'
 
 export interface JoinResult {
   participant: ParticipantRecord
   source: JoinResultSource
 }
 
+export interface LeaveResult {
+  participant: ParticipantRecord
+  source: LeaveResultSource
+}
+
+export interface SwitchResult {
+  participant: ParticipantRecord
+  source: SwitchResultSource
+}
+
 type JoinErrorCode =
   | 'participant_not_found'
   | 'project_not_found'
+  | 'project_full'
   | 'already_has_main_project'
+  | 'not_current_main_project'
+  | 'no_main_project'
+  | 'membership_state_invalid'
 
 export class JoinProjectError extends Error {
   code: JoinErrorCode
@@ -77,6 +93,37 @@ function projectExists(database: DatabaseSync, projectId: string): boolean {
   return Boolean(row)
 }
 
+function incrementProjectMemberCountIfCapacity(
+  database: DatabaseSync,
+  projectId: string,
+): number {
+  const result = database
+    .prepare(
+      `
+        UPDATE projects
+        SET member_count = member_count + 1
+        WHERE id = ? AND member_count < 5
+      `,
+    )
+    .run(projectId) as { changes?: number }
+
+  return result.changes ?? 0
+}
+
+function decrementProjectMemberCount(database: DatabaseSync, projectId: string): number {
+  const result = database
+    .prepare(
+      `
+        UPDATE projects
+        SET member_count = member_count - 1
+        WHERE id = ? AND member_count > 0
+      `,
+    )
+    .run(projectId) as { changes?: number }
+
+  return result.changes ?? 0
+}
+
 export function joinParticipantToProject(
   participantId: string,
   projectId: string,
@@ -110,6 +157,11 @@ export function joinParticipantToProject(
       )
     }
 
+    const incrementChanges = incrementProjectMemberCountIfCapacity(database, projectId)
+    if (incrementChanges === 0) {
+      throw new JoinProjectError('project_full', 'Project is full.')
+    }
+
     database
       .prepare(
         `
@@ -120,16 +172,6 @@ export function joinParticipantToProject(
       )
       .run(projectId, participantId)
 
-    database
-      .prepare(
-        `
-          UPDATE projects
-          SET member_count = member_count + 1
-          WHERE id = ?
-        `,
-      )
-      .run(projectId)
-
     const updatedParticipant = getParticipant(database, participantId)
     if (!updatedParticipant) {
       throw new Error('Unable to reload participant after join.')
@@ -139,6 +181,147 @@ export function joinParticipantToProject(
     return {
       participant: mapParticipantRow(updatedParticipant),
       source: 'joined',
+    }
+  } catch (error) {
+    try {
+      database.exec('ROLLBACK')
+    } catch {
+      // Ignore rollback errors; original error is more relevant.
+    }
+    throw error
+  } finally {
+    database.close()
+  }
+}
+
+export function leaveParticipantProject(participantId: string, projectId: string): LeaveResult {
+  const database = openDatabase(getDatabasePath())
+
+  try {
+    database.exec('BEGIN')
+
+    const participant = getParticipant(database, participantId)
+    if (!participant) {
+      throw new JoinProjectError('participant_not_found', 'Participant not found.')
+    }
+
+    if (!projectExists(database, projectId)) {
+      throw new JoinProjectError('project_not_found', 'Project not found.')
+    }
+
+    if (participant.main_project_id !== projectId) {
+      throw new JoinProjectError(
+        'not_current_main_project',
+        'You can only leave your current main project.',
+      )
+    }
+
+    const decrementChanges = decrementProjectMemberCount(database, projectId)
+    if (decrementChanges === 0) {
+      throw new JoinProjectError(
+        'membership_state_invalid',
+        'Project membership state is invalid. Try again.',
+      )
+    }
+
+    database
+      .prepare(
+        `
+          UPDATE users
+          SET main_project_id = NULL
+          WHERE id = ?
+        `,
+      )
+      .run(participantId)
+
+    const updatedParticipant = getParticipant(database, participantId)
+    if (!updatedParticipant) {
+      throw new Error('Unable to reload participant after leave.')
+    }
+
+    database.exec('COMMIT')
+    return {
+      participant: mapParticipantRow(updatedParticipant),
+      source: 'left',
+    }
+  } catch (error) {
+    try {
+      database.exec('ROLLBACK')
+    } catch {
+      // Ignore rollback errors; original error is more relevant.
+    }
+    throw error
+  } finally {
+    database.close()
+  }
+}
+
+export function switchParticipantProject(
+  participantId: string,
+  targetProjectId: string,
+): SwitchResult {
+  const database = openDatabase(getDatabasePath())
+
+  try {
+    database.exec('BEGIN')
+
+    const participant = getParticipant(database, participantId)
+    if (!participant) {
+      throw new JoinProjectError('participant_not_found', 'Participant not found.')
+    }
+
+    if (!projectExists(database, targetProjectId)) {
+      throw new JoinProjectError('project_not_found', 'Project not found.')
+    }
+
+    if (!participant.main_project_id) {
+      throw new JoinProjectError(
+        'no_main_project',
+        'No current main project found. Join a project first.',
+      )
+    }
+
+    if (participant.main_project_id === targetProjectId) {
+      database.exec('COMMIT')
+      return {
+        participant: mapParticipantRow(participant),
+        source: 'already_joined',
+      }
+    }
+
+    const currentProjectId = participant.main_project_id
+    const decrementChanges = decrementProjectMemberCount(database, currentProjectId)
+    if (decrementChanges === 0) {
+      throw new JoinProjectError(
+        'membership_state_invalid',
+        'Current project membership state is invalid. Try again.',
+      )
+    }
+
+    const incrementChanges = incrementProjectMemberCountIfCapacity(database, targetProjectId)
+    if (incrementChanges === 0) {
+      throw new JoinProjectError('project_full', 'Project is full.')
+    }
+
+    database
+      .prepare(
+        `
+          UPDATE users
+          SET main_project_id = ?
+          WHERE id = ?
+        `,
+      )
+      .run(targetProjectId, participantId)
+
+    const updatedParticipant = getParticipant(database, participantId)
+    if (!updatedParticipant) {
+      throw new Error('Unable to reload participant after switch.')
+    }
+
+    database.exec('COMMIT')
+    return {
+      participant: mapParticipantRow(updatedParticipant),
+      source: 'switched',
     }
   } catch (error) {
     try {

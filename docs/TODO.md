@@ -205,28 +205,28 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [x] Documentation: add join rule and error codes.
 
 ### Step 15 - Enforce project capacity (max 5)
-- [ ] Add capacity check to join logic.
-- [ ] Return specific "project full" response.
-- [ ] Show disabled Join UI when full.
-- [ ] Test: capacity boundary test (4->5 allowed, 5->6 blocked).
-- [ ] Security: atomic update/transaction to prevent race-condition overfill.
-- [ ] Documentation: add capacity behavior.
+- [x] Add capacity check to join logic.
+- [x] Return specific "project full" response.
+- [x] Show disabled Join UI when full.
+- [x] Test: capacity boundary test (4->5 allowed, 5->6 blocked).
+- [x] Security: atomic update/transaction to prevent race-condition overfill.
+- [x] Documentation: add capacity behavior.
 
 ### Step 16 - Give up current project
-- [ ] Implement leave endpoint for current main project.
-- [ ] Update member count reliably.
-- [ ] Add Give Up action in UI.
-- [ ] Test: leave flow updates membership and counter.
-- [ ] Security: authorize user can only leave their own membership.
-- [ ] Documentation: add leave flow sequence.
+- [x] Implement leave endpoint for current main project.
+- [x] Update member count reliably.
+- [x] Add Give Up action in UI.
+- [x] Test: leave flow updates membership and counter.
+- [x] Security: authorize user can only leave their own membership.
+- [x] Documentation: add leave flow sequence.
 
 ### Step 17 - Switch main project
-- [ ] Implement switch endpoint (leave old + join new in transaction).
-- [ ] Add Switch action UX from current project context.
-- [ ] Handle full target project case gracefully.
-- [ ] Test: successful switch + rollback on failure.
-- [ ] Security: transactional integrity to avoid dual-membership state.
-- [ ] Documentation: add switch flow and failure handling.
+- [x] Implement switch endpoint (leave old + join new in transaction).
+- [x] Add Switch action UX from current project context.
+- [x] Handle full target project case gracefully.
+- [x] Test: successful switch + rollback on failure.
+- [x] Security: transactional integrity to avoid dual-membership state.
+- [x] Documentation: add switch flow and failure handling.
 
 ## Phase 4 - Watchlist + Project Creation
 
