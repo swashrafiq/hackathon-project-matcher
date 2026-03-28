@@ -10,8 +10,8 @@
 }
 
 .app-header {
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .app-header-inner {
@@ -23,9 +23,15 @@
 }
 
 .brand {
-  color: #111827;
+  color: var(--text);
   font-weight: 700;
   text-decoration: none;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .nav-list {
@@ -37,7 +43,7 @@
 }
 
 .nav-list a {
-  color: #374151;
+  color: var(--link);
   text-decoration: none;
 }
 
@@ -58,21 +64,35 @@
 
 .app-main p {
   margin: 0 0 0.75rem;
-  color: #4b5563;
+  color: var(--muted);
 }
 
 .app-main code {
-  background: #f3f4f6;
+  background: var(--code-bg);
   border-radius: 0.25rem;
   padding: 0.15rem 0.35rem;
-  color: #1f2937;
+  color: var(--code-text);
 }
 
 .app-footer {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
   padding: 1rem 0;
-  color: #6b7280;
-  background: #f9fafb;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.theme-toggle {
+  border: 1px solid var(--button-border);
+  background: var(--button-bg);
+  color: var(--button-text);
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  opacity: 0.9;
 }
 
 @media (max-width: 700px) {
@@ -85,5 +105,10 @@
 
   .nav-list {
     flex-wrap: wrap;
+  }
+
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
   }
 }

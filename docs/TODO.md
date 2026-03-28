@@ -120,12 +120,12 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [x] Documentation: add UI structure section with route map.
 
 ### Step 5 - Theme system skeleton (dark + light)
-- [ ] Add global theme tokens (colors, spacing) for dark and light mode.
-- [ ] Add visible theme toggle in header.
-- [ ] Persist selected theme in local storage.
-- [ ] Test: toggle switches and persists after reload.
-- [ ] Security: validate local storage reads with safe fallback to default theme.
-- [ ] Documentation: add theming approach and default behavior.
+- [x] Add global theme tokens (colors, spacing) for dark and light mode.
+- [x] Add visible theme toggle in header.
+- [x] Persist selected theme in local storage.
+- [x] Test: toggle switches and persists after reload.
+- [x] Security: validate local storage reads with safe fallback to default theme.
+- [x] Documentation: add theming approach and default behavior.
 
 ### Step 6 - Mocked project data model in frontend
 - [ ] Define TypeScript interfaces for `User` and `Project` (matching PRD).
