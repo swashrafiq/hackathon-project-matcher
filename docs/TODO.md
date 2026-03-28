@@ -171,12 +171,12 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [x] Documentation: add architecture diagram and local run instructions.
 
 ### Step 11 - Database setup and migrations
-- [ ] Add database (SQLite/Postgres) and migration tooling.
-- [ ] Create `users` and `projects` tables.
-- [ ] Seed initial project records for development.
-- [ ] Test: migration + seed test in CI.
-- [ ] Security: use parameterized queries/ORM protections.
-- [ ] Documentation: add migration commands and schema notes.
+- [x] Add database (SQLite/Postgres) and migration tooling.
+- [x] Create `users` and `projects` tables.
+- [x] Seed initial project records for development.
+- [x] Test: migration + seed test in CI.
+- [x] Security: use parameterized queries/ORM protections.
+- [x] Documentation: add migration commands and schema notes.
 
 ### Step 12 - Real read API for project list/details
 - [ ] Implement `GET /projects` and `GET /projects/:id`.
