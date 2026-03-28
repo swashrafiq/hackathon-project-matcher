@@ -1,9 +1,14 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import App from './App'
 
 describe('App', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+    delete document.documentElement.dataset.theme
+  })
+
   it('renders app shell and home route', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
@@ -33,5 +38,36 @@ describe('App', () => {
       screen.getByRole('heading', { name: 'Project Details (Placeholder)' }),
     ).toBeInTheDocument()
     expect(screen.getByText(/Selected project:/)).toBeInTheDocument()
+  })
+
+  it('toggles theme and persists selection', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to dark mode' }))
+
+    expect(window.localStorage.getItem('hpm-theme')).toBe('dark')
+    expect(document.documentElement.dataset.theme).toBe('dark')
+    expect(
+      screen.getByRole('button', { name: 'Switch to light mode' }),
+    ).toBeInTheDocument()
+  })
+
+  it('falls back to light theme for invalid stored value', () => {
+    window.localStorage.setItem('hpm-theme', '<script>')
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(document.documentElement.dataset.theme).toBe('light')
+    expect(
+      screen.getByRole('button', { name: 'Switch to dark mode' }),
+    ).toBeInTheDocument()
   })
 })

@@ -82,6 +82,13 @@ Current route map:
 - `/projects/:projectId` -> Project details placeholder view
 - `*` -> Not found text fallback
 
+## Theming
+
+- Supported modes: `light` and `dark`
+- Toggle location: app header (`Dark mode` / `Light mode` button)
+- Persistence: `localStorage` key `hpm-theme`
+- Default/fallback behavior: invalid or missing storage value falls back to `light`
+
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.
