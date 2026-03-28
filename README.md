@@ -29,10 +29,27 @@ npm run preview
 ## CI
 
 - Workflow file: `.github/workflows/ci.yml`
-- Triggered on pushes to `main` and pull requests targeting `main`
+- Triggered on pushes to `dev`/`main` and pull requests targeting `dev`/`main`
 - Runs: install, lint, test, build, dependency audit
 
 After you push this repository to GitHub, check the **Actions** tab to confirm the first run passes.
+
+## Branching and Staging Workflow
+
+Use this promotion path to avoid direct changes on `main`:
+
+1. Create a feature branch from `dev` (example: `feature/project-cards`).
+2. Open PR: `feature/*` -> `dev` for integration testing/review.
+3. After validation on `dev`, open PR: `dev` -> `main` for release.
+4. `main` remains the production branch (Deploy workflow runs from `main`).
+
+Suggested commands:
+
+```bash
+git checkout dev
+git pull
+git checkout -b feature/short-task-name
+```
 
 ## Deployment (GitHub Pages)
 
