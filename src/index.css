@@ -3,4 +3,5 @@ body {
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   color: #111827;
   background-color: #ffffff;
+  line-height: 1.5;
 }

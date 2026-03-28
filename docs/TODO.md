@@ -36,7 +36,7 @@ This checklist is designed for very small, tangible increments suitable for AI-a
   - [x] Add `.gitignore`, `.env.example`, and README quick-start.
 
 ### Next
-- [ ] Step 2 - CI setup early
+- [x] Step 2 - CI setup early
   - [x] Add CI workflow for install/lint/test/build.
   - [x] Add dependency audit in CI.
   - [x] Document CI usage and failure handling.
@@ -112,12 +112,12 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 ## Phase 1 - UI Foundation with Mocked Data
 
 ### Step 4 - App shell and layout
-- [ ] Create base layout: header, main content container, footer.
-- [ ] Add desktop-first responsive structure.
-- [ ] Add simple route structure (home, project details placeholder).
-- [ ] Test: render test for app shell.
-- [ ] Security: sanitize any dynamic text rendering defaults.
-- [ ] Documentation: add UI structure section with route map.
+- [x] Create base layout: header, main content container, footer.
+- [x] Add desktop-first responsive structure.
+- [x] Add simple route structure (home, project details placeholder).
+- [x] Test: render test for app shell.
+- [x] Security: sanitize any dynamic text rendering defaults.
+- [x] Documentation: add UI structure section with route map.
 
 ### Step 5 - Theme system skeleton (dark + light)
 - [ ] Add global theme tokens (colors, spacing) for dark and light mode.

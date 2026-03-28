@@ -51,6 +51,20 @@ After you push this repository to GitHub, check the **Actions** tab to confirm t
 - Revert the breaking commit on `main` and push again; the deploy workflow publishes the previous stable state.
 - Alternative: redeploy a known-good commit by checking it out, cherry-picking as needed, and pushing to `main`.
 
+## UI Structure and Routes
+
+Current shell structure:
+
+- `header`: brand and primary navigation
+- `main`: route content area
+- `footer`: event context text
+
+Current route map:
+
+- `/` -> Home view (hello and step progress text)
+- `/projects/:projectId` -> Project details placeholder view
+- `*` -> Not found text fallback
+
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.
