@@ -21,7 +21,6 @@ function startServer() {
   const app = createApp()
   const apiPort = readApiPort()
   const apiHost = process.env.API_HOST || DEFAULT_API_HOST
-
   app.listen(apiPort, apiHost, () => {
     console.log(`API server listening on http://${apiHost}:${apiPort}`)
   })
