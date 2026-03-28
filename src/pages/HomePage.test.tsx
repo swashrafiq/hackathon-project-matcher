@@ -2,13 +2,36 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { HomePage } from './HomePage'
-import type { Project } from '../types/models'
+import type { ProjectReadModel } from '../types/models'
+
+const sampleProjects: ProjectReadModel[] = [
+  {
+    id: 'proj-smart-schedule',
+    title: 'Smart Schedule Builder',
+    description: 'Generate personalized hackathon schedules from tracks and interests.',
+    techStack: 'React, TypeScript',
+    leadName: 'Nadia Khan',
+    memberCount: 3,
+    status: 'active',
+  },
+  {
+    id: 'proj-team-finder',
+    title: 'Team Finder',
+    description: 'Match participants by skills and project interests.',
+    techStack: 'Node.js, SQLite',
+    leadName: 'Event Coordinator',
+    memberCount: 2,
+    status: 'active',
+  },
+]
 
 describe('HomePage', () => {
   it('renders mocked projects as cards with key fields', async () => {
+    const loadProjects = async (): Promise<ProjectReadModel[]> => sampleProjects
+
     render(
       <MemoryRouter>
-        <HomePage />
+        <HomePage loadProjects={loadProjects} />
       </MemoryRouter>,
     )
 
@@ -19,7 +42,7 @@ describe('HomePage', () => {
   })
 
   it('renders empty state when loader returns no projects', async () => {
-    const loadProjects = (): Project[] => []
+    const loadProjects = async (): Promise<ProjectReadModel[]> => []
 
     render(
       <MemoryRouter>
@@ -30,10 +53,26 @@ describe('HomePage', () => {
     expect(await screen.findByText('No projects available yet.')).toBeInTheDocument()
   })
 
-  it('disables project actions when participant session is missing', async () => {
+  it('renders fetch error state when project list request fails', async () => {
+    const loadProjects = async (): Promise<ProjectReadModel[]> => {
+      throw new Error('request failed')
+    }
+
     render(
       <MemoryRouter>
-        <HomePage canPerformProjectActions={false} />
+        <HomePage loadProjects={loadProjects} />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('Unable to load projects right now.')).toBeInTheDocument()
+  })
+
+  it('disables project actions when participant session is missing', async () => {
+    const loadProjects = async (): Promise<ProjectReadModel[]> => sampleProjects
+
+    render(
+      <MemoryRouter>
+        <HomePage loadProjects={loadProjects} canPerformProjectActions={false} />
       </MemoryRouter>,
     )
 
