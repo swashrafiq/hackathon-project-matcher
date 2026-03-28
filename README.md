@@ -3,6 +3,7 @@
 Step 1 scaffold for the Hackathon Project Matcher web app.
 
 [![CI](https://github.com/swashrafiq/hackathon-project-matcher/actions/workflows/ci.yml/badge.svg)](https://github.com/swashrafiq/hackathon-project-matcher/actions/workflows/ci.yml)
+[![Deploy](https://github.com/swashrafiq/hackathon-project-matcher/actions/workflows/deploy.yml/badge.svg)](https://github.com/swashrafiq/hackathon-project-matcher/actions/workflows/deploy.yml)
 
 ## Quick Start
 
@@ -32,6 +33,23 @@ npm run preview
 - Runs: install, lint, test, build, dependency audit
 
 After you push this repository to GitHub, check the **Actions** tab to confirm the first run passes.
+
+## Deployment (GitHub Pages)
+
+- Workflow file: `.github/workflows/deploy.yml`
+- Trigger: push to `main` (or manual dispatch)
+- Live URL: [https://swashrafiq.github.io/hackathon-project-matcher/](https://swashrafiq.github.io/hackathon-project-matcher/)
+
+### Smoke Checklist
+
+- Deployed page loads successfully over HTTPS.
+- "Hello Hackathon Project Matcher" is visible.
+- Browser console has no blocking runtime errors.
+
+### Rollback Basics
+
+- Revert the breaking commit on `main` and push again; the deploy workflow publishes the previous stable state.
+- Alternative: redeploy a known-good commit by checking it out, cherry-picking as needed, and pushing to `main`.
 
 ## Environment Variables
 
