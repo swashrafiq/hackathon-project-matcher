@@ -125,6 +125,19 @@ Home list behavior:
 - Shows empty state: `No projects available yet.`
 - Each card shows title, short description, member count, status, and details link
 
+## Project Details Flow (Mocked)
+
+Details route behavior:
+
+- Route: `/projects/:projectId`
+- Valid id: render full details (`title`, `description`, `techStack`, `leadName`, `memberCount`, `status badge`)
+- Invalid/missing id: render safe not-found state with sanitized requested id
+
+Navigation:
+
+- User clicks `View details` on a project card
+- App routes to details page for that project id
+
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.

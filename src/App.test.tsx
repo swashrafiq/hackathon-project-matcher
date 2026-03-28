@@ -35,7 +35,7 @@ describe('App', () => {
     )
 
     expect(
-      screen.getByRole('heading', { name: 'Project Details (Placeholder)' }),
+      screen.getByRole('heading', { name: 'Smart Schedule Builder' }),
     ).toBeInTheDocument()
     expect(screen.getByText(/Tech stack:/)).toBeInTheDocument()
   })
