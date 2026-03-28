@@ -197,12 +197,12 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [x] Documentation: add participant lifecycle flow.
 
 ### Step 14 - Join project API (single main project rule)
-- [ ] Implement join endpoint with rule: one main project per user.
-- [ ] Return clear error when user already has another main project.
-- [ ] Connect Join button to API.
-- [ ] Test: successful join + duplicate-main-project rejection.
-- [ ] Security: server-side rule enforcement (never client-only).
-- [ ] Documentation: add join rule and error codes.
+- [x] Implement join endpoint with rule: one main project per user.
+- [x] Return clear error when user already has another main project.
+- [x] Connect Join button to API.
+- [x] Test: successful join + duplicate-main-project rejection.
+- [x] Security: server-side rule enforcement (never client-only).
+- [x] Documentation: add join rule and error codes.
 
 ### Step 15 - Enforce project capacity (max 5)
 - [ ] Add capacity check to join logic.

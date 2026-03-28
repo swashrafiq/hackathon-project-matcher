@@ -192,7 +192,7 @@ describe('App', () => {
 
     expect(window.localStorage.getItem('hpm-participant-session')).toBeNull()
     expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
-    const joinButtons = screen.getAllByRole('button', { name: 'Join project (mocked)' })
+    const joinButtons = screen.getAllByRole('button', { name: 'Join project' })
     expect(joinButtons.every((button) => button.hasAttribute('disabled'))).toBe(true)
   })
 
@@ -227,7 +227,7 @@ describe('App', () => {
     expect(storedSession.role).toBe('participant')
 
     expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
-    const joinButtons = screen.getAllByRole('button', { name: 'Join project (mocked)' })
+    const joinButtons = screen.getAllByRole('button', { name: 'Join project' })
     expect(joinButtons.every((button) => !button.hasAttribute('disabled'))).toBe(true)
   })
 

@@ -153,7 +153,7 @@ Navigation:
 Known limitations in this step:
 
 - Session is frontend-only (no backend identity verification yet)
-- "Join project" remains mocked and non-persistent until membership API steps
+- Join behavior is handled by Step 14 backend API rules
 - Local storage can be cleared manually by the user/browser at any time
 
 ## Backend Scaffold (Step 10)
@@ -275,6 +275,34 @@ Frontend flow:
 - onboarding form in `App` submits to backend instead of local-only mock creation
 - session now stores backend participant identity (`id`, `role`, `mainProjectId`)
 - backend validation/rate-limit messages are surfaced in entry form error state
+
+## Join Project API (Step 14)
+
+Join endpoint:
+
+- `POST /projects/:projectId/join` with JSON body `{ participantId }`
+- Behavior:
+  - returns `200` + `{ source: "joined" }` when the user joins a project for the first time
+  - returns `200` + `{ source: "already_joined" }` when user is already on that same project
+  - returns `409` when user already has a different `mainProjectId`
+
+Error and validation codes:
+
+- `400` for invalid `projectId` or `participantId` format
+- `404` if target project or participant does not exist
+- `409` for single-main-project rule conflict
+
+Security behavior:
+
+- one-main-project rule is enforced server-side in repository logic
+- project membership updates happen through backend-only controlled SQL updates
+- SQL operations remain parameterized
+
+Frontend integration:
+
+- Home page Join button now calls backend join API
+- Join feedback and conflict error messages are shown in UI
+- Session `mainProjectId` is updated in state and local storage from API response
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.

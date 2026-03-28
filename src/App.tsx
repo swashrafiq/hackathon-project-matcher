@@ -3,6 +3,7 @@ import { type FormEvent, useEffect, useState } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 import { HomePage } from './pages/HomePage'
 import { ProjectDetailsPage } from './pages/ProjectDetailsPage'
+import { joinProject } from './api/joinProject'
 import { submitParticipantEntry } from './api/participants'
 import {
   type ParticipantSession,
@@ -108,6 +109,27 @@ function App() {
     }
   }
 
+  async function handleJoinProject(projectId: string): Promise<'joined' | 'already_joined'> {
+    if (!participantSession) {
+      throw new Error('Please enter your name and email first.')
+    }
+
+    const response = await joinProject(projectId, participantSession.id)
+    const nextSession: ParticipantSession = {
+      ...participantSession,
+      mainProjectId: response.participant.mainProjectId,
+    }
+
+    setParticipantSession(nextSession)
+    try {
+      window.localStorage.setItem(PARTICIPANT_SESSION_STORAGE_KEY, JSON.stringify(nextSession))
+    } catch {
+      // Ignore storage errors; in-memory session still works.
+    }
+
+    return response.source
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -192,7 +214,13 @@ function App() {
           <Routes>
             <Route
               path="/"
-              element={<HomePage canPerformProjectActions={Boolean(participantSession)} />}
+              element={
+                <HomePage
+                  canPerformProjectActions={Boolean(participantSession)}
+                  participantSession={participantSession}
+                  onJoinProject={handleJoinProject}
+                />
+              }
             />
             <Route path="/projects/:projectId" element={<ProjectDetailsPage />} />
             <Route path="*" element={<p>Page not found.</p>} />
