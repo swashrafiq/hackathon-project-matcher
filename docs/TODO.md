@@ -189,12 +189,12 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 ## Phase 3 - Membership Core Functionality
 
 ### Step 13 - Create/lookup participant API
-- [ ] Implement participant creation/lookup by name + email.
-- [ ] Store role (`participant` default).
-- [ ] Wire entry form to backend.
-- [ ] Test: create vs existing-user behavior.
-- [ ] Security: basic rate limiting on participant creation endpoint.
-- [ ] Documentation: add participant lifecycle flow.
+- [x] Implement participant creation/lookup by name + email.
+- [x] Store role (`participant` default).
+- [x] Wire entry form to backend.
+- [x] Test: create vs existing-user behavior.
+- [x] Security: basic rate limiting on participant creation endpoint.
+- [x] Documentation: add participant lifecycle flow.
 
 ### Step 14 - Join project API (single main project rule)
 - [ ] Implement join endpoint with rule: one main project per user.

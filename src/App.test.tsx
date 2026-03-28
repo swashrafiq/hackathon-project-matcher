@@ -8,7 +8,7 @@ describe('App', () => {
     window.localStorage.clear()
     delete document.documentElement.dataset.theme
 
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
 
       if (url.endsWith('/projects')) {
@@ -54,6 +54,43 @@ describe('App', () => {
             },
           }),
           { status: 200, headers: { 'Content-Type': 'application/json' } },
+        )
+      }
+
+      if (url.endsWith('/participants')) {
+        const payload = JSON.parse(String(init?.body || '{}')) as {
+          name?: string
+          email?: string
+        }
+
+        if (payload.email === 'existing@example.com') {
+          return new Response(
+            JSON.stringify({
+              participant: {
+                id: 'user-existing',
+                name: 'Existing User',
+                email: 'existing@example.com',
+                role: 'participant',
+                mainProjectId: null,
+              },
+              source: 'existing',
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          )
+        }
+
+        return new Response(
+          JSON.stringify({
+            participant: {
+              id: 'user-created',
+              name: payload.name || '',
+              email: payload.email || '',
+              role: 'participant',
+              mainProjectId: null,
+            },
+            source: 'created',
+          }),
+          { status: 201, headers: { 'Content-Type': 'application/json' } },
         )
       }
 
@@ -174,15 +211,42 @@ describe('App', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Enter hackathon' }))
 
-    expect(screen.getByText(/Signed in as/i)).toBeInTheDocument()
+    expect(await screen.findByText(/Signed in as/i)).toBeInTheDocument()
 
-    const storedSession = window.localStorage.getItem('hpm-participant-session')
-    expect(storedSession).toBe(
-      JSON.stringify({ name: 'bRafiq/b', email: 'rafiq@example.com' }),
-    )
+    const storedSession = JSON.parse(
+      String(window.localStorage.getItem('hpm-participant-session')),
+    ) as {
+      id: string
+      name: string
+      email: string
+      role: string
+    }
+    expect(storedSession.id).toBe('user-created')
+    expect(storedSession.name).toBe('bRafiq/b')
+    expect(storedSession.email).toBe('rafiq@example.com')
+    expect(storedSession.role).toBe('participant')
 
     expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
     const joinButtons = screen.getAllByRole('button', { name: 'Join project (mocked)' })
     expect(joinButtons.every((button) => !button.hasAttribute('disabled'))).toBe(true)
+  })
+
+  it('uses existing participant session payload from backend lookup', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'Any Name' },
+    })
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'existing@example.com' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Enter hackathon' }))
+
+    expect(await screen.findByText(/Signed in as/i)).toBeInTheDocument()
+    expect(screen.getByText(/Existing User/)).toBeInTheDocument()
   })
 })
