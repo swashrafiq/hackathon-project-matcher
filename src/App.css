@@ -81,6 +81,34 @@
   background: var(--surface);
 }
 
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.project-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 0.6rem;
+  padding: 1rem;
+}
+
+.project-card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+}
+
+.project-card p {
+  margin: 0 0 0.5rem;
+}
+
+.project-card a {
+  color: var(--link);
+  text-decoration: underline;
+}
+
 .theme-toggle {
   border: 1px solid var(--button-border);
   background: var(--button-bg);
