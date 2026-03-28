@@ -6,6 +6,7 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [ ] Keep each PR/task very small (target: 1 behavior change, ideally <= 120 lines changed).
 - [ ] Define a single acceptance check before coding each task (what must be true when done).
 - [ ] Add or update tests for every new behavior before marking a task complete.
+- [ ] Manually preview the latest development build (`npm run dev`) before commit/PR.
 - [ ] Run local checks before commit (`test`, `lint`, `build`), or document why a check was skipped.
 - [ ] Include at least one security action per step (input validation, auth rule, safe defaults, or dependency check).
 - [ ] Include a documentation update per step (`README.md` and/or relevant file under `docs/`).
@@ -136,12 +137,12 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [x] Documentation: add data model snippet and mock data location.
 
 ### Step 7 - Project cards list (mocked)
-- [ ] Build project card component (title, short description, member count, status).
-- [ ] Render card grid from mocked data.
-- [ ] Add loading/empty states.
-- [ ] Test: list renders expected number of cards and key fields.
-- [ ] Security: escape/sanitize displayed project text.
-- [ ] Documentation: add card component props and states.
+- [x] Build project card component (title, short description, member count, status).
+- [x] Render card grid from mocked data.
+- [x] Add loading/empty states.
+- [x] Test: list renders expected number of cards and key fields.
+- [x] Security: escape/sanitize displayed project text.
+- [x] Documentation: add card component props and states.
 
 ### Step 8 - Project details page (mocked)
 - [ ] Create details view route with full project fields.

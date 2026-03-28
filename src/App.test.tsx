@@ -29,7 +29,7 @@ describe('App', () => {
 
   it('renders project details placeholder route', () => {
     render(
-      <MemoryRouter initialEntries={['/projects/sample-project']}>
+      <MemoryRouter initialEntries={['/projects/proj-smart-schedule']}>
         <App />
       </MemoryRouter>,
     )
@@ -37,7 +37,7 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { name: 'Project Details (Placeholder)' }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/Selected project:/)).toBeInTheDocument()
+    expect(screen.getByText(/Tech stack:/)).toBeInTheDocument()
   })
 
   it('toggles theme and persists selection', () => {

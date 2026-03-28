@@ -51,6 +51,15 @@ git pull
 git checkout -b feature/short-task-name
 ```
 
+Before creating a PR or commit, do a local preview + validation pass:
+
+```bash
+npm run dev
+npm run test
+npm run lint
+npm run build
+```
+
 ## Deployment (GitHub Pages)
 
 - Workflow file: `.github/workflows/deploy.yml`
@@ -101,6 +110,21 @@ Model highlights:
 
 - `User`: `id`, `name`, `email`, `role`, `mainProjectId`, `watchedProjectIds`
 - `Project`: `id`, `title`, `description`, `techStack`, `leadName`, `memberCount`, `status`, `createdByUserId`, `memberIds`
+
+## Project Cards (Mocked)
+
+Card component:
+
+- `src/components/ProjectCard.tsx`
+- Props: `{ project: Project }`
+
+Home list behavior:
+
+- Loads cards from `getMockProjects()`
+- Shows loading state: `Loading projects...`
+- Shows empty state: `No projects available yet.`
+- Each card shows title, short description, member count, status, and details link
+
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.
