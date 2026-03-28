@@ -18,7 +18,11 @@ Open the local URL shown by Vite to view the app.
 
 ```bash
 npm run dev
+npm run dev:server
+npm run db:migrate
+npm run db:seed
 npm run test
+npm run test:db
 npm run lint
 npm run format
 npm run build
@@ -196,6 +200,37 @@ npm run test
 npm run lint
 npm run build
 ```
+
+## Database Setup and Migrations (Step 11)
+
+Database stack and tooling:
+
+- Engine: SQLite via Node's built-in `node:sqlite`
+- Migration runner: `backend/db/migrate.ts`
+- Seed runner: `backend/db/seed.ts`
+- Migration files: `backend/db/migrations/*.sql`
+
+Schema notes:
+
+- `users` table: participant/admin identity records (`email` is unique)
+- `projects` table: project metadata with `member_count` constrained to 0..5
+- `projects.created_by_user_id` references `users.id`
+
+Migration and seed commands:
+
+```bash
+npm run db:migrate
+npm run db:seed
+```
+
+CI/automation coverage:
+
+- `npm run test:db` validates migrations apply and seed data inserts
+- The CI workflow runs `test:db` before build
+
+Security note:
+
+- Database writes and reads use parameterized statements (`?` placeholders) to reduce SQL injection risk.
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.
