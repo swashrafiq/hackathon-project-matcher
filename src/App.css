@@ -14,6 +14,64 @@
   background: var(--surface);
 }
 
+.participant-entry-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0 0 1rem;
+  align-items: flex-end;
+}
+
+.entry-field-group {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.entry-field-group label {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.entry-field-group input {
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  background: var(--surface);
+  color: var(--text);
+  padding: 0.45rem 0.6rem;
+}
+
+.participant-entry-form button,
+.project-card button,
+.session-clear-button {
+  border: 1px solid var(--button-border);
+  background: var(--button-bg);
+  color: var(--button-text);
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.participant-entry-form button:hover,
+.project-card button:hover,
+.session-clear-button:hover {
+  opacity: 0.9;
+}
+
+.entry-error-text {
+  width: 100%;
+  margin: 0;
+  color: #b91c1c;
+}
+
+.participant-session-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0 1rem;
+}
+
 .app-header-inner {
   min-height: 64px;
   display: flex;
@@ -109,6 +167,11 @@
   text-decoration: underline;
 }
 
+.project-card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .status-badge {
   display: inline-block;
   border-radius: 999px;
@@ -156,5 +219,10 @@
   .header-controls {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .participant-session-banner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
