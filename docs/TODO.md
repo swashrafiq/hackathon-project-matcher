@@ -145,12 +145,12 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [x] Documentation: add card component props and states.
 
 ### Step 8 - Project details page (mocked)
-- [ ] Create details view route with full project fields.
-- [ ] Support navigation from card to details.
-- [ ] Show status badge and member count.
-- [ ] Test: details page renders selected mocked project.
-- [ ] Security: handle invalid/missing project ID with safe not-found view.
-- [ ] Documentation: add details page flow.
+- [x] Create details view route with full project fields.
+- [x] Support navigation from card to details.
+- [x] Show status badge and member count.
+- [x] Test: details page renders selected mocked project.
+- [x] Security: handle invalid/missing project ID with safe not-found view.
+- [x] Documentation: add details page flow.
 
 ### Step 9 - Name + email entry (mocked session only)
 - [ ] Build entry form for name and email.
