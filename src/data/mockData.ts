@@ -1,0 +1,75 @@
+import type { Project, User } from '../types/models'
+
+export const mockUsers: ReadonlyArray<User> = [
+  {
+    id: 'user-admin-1',
+    name: 'Event Admin',
+    email: 'admin@hackathon.local',
+    role: 'admin',
+    mainProjectId: null,
+    watchedProjectIds: [],
+  },
+  {
+    id: 'user-1',
+    name: 'Amina',
+    email: 'amina@example.com',
+    role: 'participant',
+    mainProjectId: 'proj-smart-schedule',
+    watchedProjectIds: ['proj-team-finder'],
+  },
+  {
+    id: 'user-2',
+    name: 'Leo',
+    email: 'leo@example.com',
+    role: 'participant',
+    mainProjectId: null,
+    watchedProjectIds: ['proj-ai-mentor', 'proj-community-map'],
+  },
+] as const
+
+export const mockProjects: ReadonlyArray<Project> = [
+  {
+    id: 'proj-smart-schedule',
+    title: 'Smart Schedule Builder',
+    description: 'Generate optimized hackathon timelines for teams and mentors.',
+    techStack: 'React, Node.js, PostgreSQL',
+    leadName: 'Amina',
+    memberCount: 3,
+    status: 'active',
+    createdByUserId: 'user-1',
+    memberIds: ['user-1', 'user-3', 'user-4'],
+  },
+  {
+    id: 'proj-team-finder',
+    title: 'Team Finder',
+    description: 'Match participants by interests, skills, and preferred roles.',
+    techStack: 'React, TypeScript, Firebase',
+    leadName: 'Ibrahim',
+    memberCount: 4,
+    status: 'active',
+    createdByUserId: 'user-5',
+    memberIds: ['user-5', 'user-6', 'user-7', 'user-8'],
+  },
+  {
+    id: 'proj-ai-mentor',
+    title: 'AI Mentor Bot',
+    description: 'Answer common build issues and suggest next implementation steps.',
+    techStack: 'Python, FastAPI, OpenAI API',
+    leadName: 'Sara',
+    memberCount: 2,
+    status: 'active',
+    createdByUserId: 'user-9',
+    memberIds: ['user-9', 'user-10'],
+  },
+  {
+    id: 'proj-community-map',
+    title: 'Community Event Map',
+    description: 'Visualize project booths and collaboration hotspots in real time.',
+    techStack: 'React, TypeScript, Mapbox',
+    leadName: 'Noor',
+    memberCount: 5,
+    status: 'completed',
+    createdByUserId: 'user-11',
+    memberIds: ['user-11', 'user-12', 'user-13', 'user-14', 'user-15'],
+  },
+] as const
