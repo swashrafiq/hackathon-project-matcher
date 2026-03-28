@@ -1,6 +1,4 @@
 import { createApp } from './app'
-import { runMigrations } from './db/migrate'
-import { seedDevelopmentData } from './db/seed'
 
 const DEFAULT_API_PORT = 8787
 const DEFAULT_API_HOST = '127.0.0.1'
@@ -20,9 +18,6 @@ function readApiPort(): number {
 }
 
 function startServer() {
-  runMigrations()
-  seedDevelopmentData()
-
   const app = createApp()
   const apiPort = readApiPort()
   const apiHost = process.env.API_HOST || DEFAULT_API_HOST

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
-import type { Project } from '../types/models'
+import type { ProjectReadModel } from '../types/models'
 import { sanitizeText } from '../utils/sanitizeText'
 
 interface ProjectCardProps {
-  project: Project
+  project: ProjectReadModel
   canPerformProjectActions?: boolean
 }
 

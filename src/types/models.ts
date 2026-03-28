@@ -21,3 +21,8 @@ export interface Project {
   createdByUserId: string
   memberIds: string[]
 }
+
+export type ProjectReadModel = Pick<
+  Project,
+  'id' | 'title' | 'description' | 'techStack' | 'leadName' | 'memberCount' | 'status'
+>

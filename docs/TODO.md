@@ -179,12 +179,12 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [x] Documentation: add migration commands and schema notes.
 
 ### Step 12 - Real read API for project list/details
-- [ ] Implement `GET /projects` and `GET /projects/:id`.
-- [ ] Replace frontend mocked reads with API calls.
-- [ ] Keep loading/error UI states.
-- [ ] Test: API contract tests + frontend data-fetch tests.
-- [ ] Security: validate route params and limit response fields.
-- [ ] Documentation: add endpoint specs.
+- [x] Implement `GET /projects` and `GET /projects/:id`.
+- [x] Replace frontend mocked reads with API calls.
+- [x] Keep loading/error UI states.
+- [x] Test: API contract tests + frontend data-fetch tests.
+- [x] Security: validate route params and limit response fields.
+- [x] Documentation: add endpoint specs.
 
 ## Phase 3 - Membership Core Functionality
 

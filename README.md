@@ -231,6 +231,28 @@ CI/automation coverage:
 Security note:
 
 - Database writes and reads use parameterized statements (`?` placeholders) to reduce SQL injection risk.
+
+## Project Read API Endpoints (Step 12)
+
+Implemented backend read routes:
+
+- `GET /projects` -> returns a list under `{ projects: [...] }`
+- `GET /projects/:projectId` -> returns a single project under `{ project: {...} }`
+
+Response field scope (intentionally limited):
+
+- `id`, `title`, `description`, `techStack`, `leadName`, `memberCount`, `status`
+
+Security behavior:
+
+- `projectId` format is validated server-side (rejects unsafe/invalid ids with `400`)
+- Missing records return `404`
+- Route handlers only expose read-model fields required by the UI
+
+Frontend integration notes:
+
+- `HomePage` now fetches project list from API and keeps loading/empty/error states
+- `ProjectDetailsPage` now fetches project details by id and handles loading/error/not-found states
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.

@@ -1,12 +1,73 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 
 describe('App', () => {
   beforeEach(() => {
     window.localStorage.clear()
     delete document.documentElement.dataset.theme
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+
+      if (url.endsWith('/projects')) {
+        return new Response(
+          JSON.stringify({
+            projects: [
+              {
+                id: 'proj-smart-schedule',
+                title: 'Smart Schedule Builder',
+                description:
+                  'Generate personalized hackathon schedules from tracks and interests.',
+                techStack: 'React, TypeScript',
+                leadName: 'Nadia Khan',
+                memberCount: 3,
+                status: 'active',
+              },
+              {
+                id: 'proj-team-finder',
+                title: 'Team Finder',
+                description: 'Match participants by skills and project interests.',
+                techStack: 'Node.js, SQLite',
+                leadName: 'Event Coordinator',
+                memberCount: 2,
+                status: 'active',
+              },
+            ],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        )
+      }
+
+      if (url.endsWith('/projects/proj-smart-schedule')) {
+        return new Response(
+          JSON.stringify({
+            project: {
+              id: 'proj-smart-schedule',
+              title: 'Smart Schedule Builder',
+              description: 'Generate personalized hackathon schedules from tracks and interests.',
+              techStack: 'React, TypeScript',
+              leadName: 'Nadia Khan',
+              memberCount: 3,
+              status: 'active',
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        )
+      }
+
+      return new Response(JSON.stringify({ error: 'Project not found.' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   it('renders app shell and home route', () => {
@@ -27,7 +88,7 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders project details placeholder route', () => {
+  it('renders project details route from API data', async () => {
     render(
       <MemoryRouter initialEntries={['/projects/proj-smart-schedule']}>
         <App />
@@ -35,7 +96,7 @@ describe('App', () => {
     )
 
     expect(
-      screen.getByRole('heading', { name: 'Smart Schedule Builder' }),
+      await screen.findByRole('heading', { name: 'Smart Schedule Builder' }),
     ).toBeInTheDocument()
     expect(screen.getByText(/Tech stack:/)).toBeInTheDocument()
   })
