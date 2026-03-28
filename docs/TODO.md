@@ -128,12 +128,12 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [x] Documentation: add theming approach and default behavior.
 
 ### Step 6 - Mocked project data model in frontend
-- [ ] Define TypeScript interfaces for `User` and `Project` (matching PRD).
-- [ ] Add local mocked dataset with 3-5 projects.
-- [ ] Create typed data access helper for mocked data.
-- [ ] Test: type-safe mock load test / helper behavior test.
-- [ ] Security: enforce strict typing and safe defaults for nullable fields.
-- [ ] Documentation: add data model snippet and mock data location.
+- [x] Define TypeScript interfaces for `User` and `Project` (matching PRD).
+- [x] Add local mocked dataset with 3-5 projects.
+- [x] Create typed data access helper for mocked data.
+- [x] Test: type-safe mock load test / helper behavior test.
+- [x] Security: enforce strict typing and safe defaults for nullable fields.
+- [x] Documentation: add data model snippet and mock data location.
 
 ### Step 7 - Project cards list (mocked)
 - [ ] Build project card component (title, short description, member count, status).

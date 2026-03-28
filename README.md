@@ -89,6 +89,19 @@ Current route map:
 - Persistence: `localStorage` key `hpm-theme`
 - Default/fallback behavior: invalid or missing storage value falls back to `light`
 
+## Mock Data Model
+
+Core frontend model files:
+
+- `src/types/models.ts` defines `User` and `Project` interfaces
+- `src/data/mockData.ts` stores the in-memory mocked users/projects dataset
+- `src/data/mockRepository.ts` exposes typed access helpers
+
+Model highlights:
+
+- `User`: `id`, `name`, `email`, `role`, `mainProjectId`, `watchedProjectIds`
+- `Project`: `id`, `title`, `description`, `techStack`, `leadName`, `memberCount`, `status`, `createdByUserId`, `memberIds`
+
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.
