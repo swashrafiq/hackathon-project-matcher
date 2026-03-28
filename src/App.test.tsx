@@ -70,4 +70,58 @@ describe('App', () => {
       screen.getByRole('button', { name: 'Switch to dark mode' }),
     ).toBeInTheDocument()
   })
+
+  it('validates participant email and blocks project actions without session', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByText('Enter your name and email above to enable project actions like Join.'),
+    ).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'Rafiq' },
+    })
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'not-an-email' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Enter hackathon' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Please enter a valid email address.')
+
+    expect(window.localStorage.getItem('hpm-participant-session')).toBeNull()
+    expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
+    const joinButtons = screen.getAllByRole('button', { name: 'Join project (mocked)' })
+    expect(joinButtons.every((button) => button.hasAttribute('disabled'))).toBe(true)
+  })
+
+  it('stores sanitized participant session and enables project actions', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: '  <b>Rafiq</b>  ' },
+    })
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: '  RAFIQ@EXAMPLE.COM  ' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Enter hackathon' }))
+
+    expect(screen.getByText(/Signed in as/i)).toBeInTheDocument()
+
+    const storedSession = window.localStorage.getItem('hpm-participant-session')
+    expect(storedSession).toBe(
+      JSON.stringify({ name: 'bRafiq/b', email: 'rafiq@example.com' }),
+    )
+
+    expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
+    const joinButtons = screen.getAllByRole('button', { name: 'Join project (mocked)' })
+    expect(joinButtons.every((button) => !button.hasAttribute('disabled'))).toBe(true)
+  })
 })

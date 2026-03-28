@@ -4,9 +4,13 @@ import { sanitizeText } from '../utils/sanitizeText'
 
 interface ProjectCardProps {
   project: Project
+  canPerformProjectActions?: boolean
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({
+  project,
+  canPerformProjectActions = true,
+}: ProjectCardProps) {
   const safeTitle = sanitizeText(project.title)
   const safeDescription = sanitizeText(project.description)
   const safeLeadName = sanitizeText(project.leadName)
@@ -21,6 +25,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
       <p>
         Members: <code>{project.memberCount}</code> | Status: <code>{project.status}</code>
       </p>
+      <button type="button" disabled={!canPerformProjectActions}>
+        Join project (mocked)
+      </button>
+      {!canPerformProjectActions ? (
+        <p role="note">Complete name/email entry to use project actions.</p>
+      ) : null}
       <Link to={`/projects/${project.id}`}>View details</Link>
     </article>
   )

@@ -29,4 +29,20 @@ describe('HomePage', () => {
 
     expect(await screen.findByText('No projects available yet.')).toBeInTheDocument()
   })
+
+  it('disables project actions when participant session is missing', async () => {
+    render(
+      <MemoryRouter>
+        <HomePage canPerformProjectActions={false} />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByText('Enter your name and email above to enable project actions like Join.'),
+    ).toBeInTheDocument()
+    expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
+
+    const joinButtons = screen.getAllByRole('button', { name: 'Join project (mocked)' })
+    expect(joinButtons.every((button) => button.hasAttribute('disabled'))).toBe(true)
+  })
 })

@@ -153,12 +153,12 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [x] Documentation: add details page flow.
 
 ### Step 9 - Name + email entry (mocked session only)
-- [ ] Build entry form for name and email.
-- [ ] Block project actions until entry complete.
-- [ ] Store participant session locally (temporary).
-- [ ] Test: validation and blocked actions when user is missing.
-- [ ] Security: add client-side email format validation and trim/sanitize inputs.
-- [ ] Documentation: add onboarding rules and known limitations.
+- [x] Build entry form for name and email.
+- [x] Block project actions until entry complete.
+- [x] Store participant session locally (temporary).
+- [x] Test: validation and blocked actions when user is missing.
+- [x] Security: add client-side email format validation and trim/sanitize inputs.
+- [x] Documentation: add onboarding rules and known limitations.
 
 ## Phase 2 - Real Backend Basics
 

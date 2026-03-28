@@ -138,6 +138,20 @@ Navigation:
 - User clicks `View details` on a project card
 - App routes to details page for that project id
 
+## Participant Onboarding (Mocked Session)
+
+- Entry fields: `name` and `email` in the app header
+- Validation: name is required; email must match a basic client-side format check
+- Security handling: both inputs are trimmed/sanitized before storage
+- Temporary storage: `localStorage` key `hpm-participant-session`
+- Blocking rule: project actions stay disabled until entry succeeds
+
+Known limitations in this step:
+
+- Session is frontend-only (no backend identity verification yet)
+- "Join project" remains mocked and non-persistent until membership API steps
+- Local storage can be cleared manually by the user/browser at any time
+
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.
