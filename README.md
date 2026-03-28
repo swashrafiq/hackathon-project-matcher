@@ -101,7 +101,6 @@ Model highlights:
 
 - `User`: `id`, `name`, `email`, `role`, `mainProjectId`, `watchedProjectIds`
 - `Project`: `id`, `title`, `description`, `techStack`, `leadName`, `memberCount`, `status`, `createdByUserId`, `memberIds`
-
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.
