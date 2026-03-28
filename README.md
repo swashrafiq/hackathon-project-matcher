@@ -196,7 +196,6 @@ npm run test
 npm run lint
 npm run build
 ```
-
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.
