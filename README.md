@@ -253,6 +253,28 @@ Frontend integration notes:
 
 - `HomePage` now fetches project list from API and keeps loading/empty/error states
 - `ProjectDetailsPage` now fetches project details by id and handles loading/error/not-found states
+
+## Participant Lifecycle API (Step 13)
+
+Participant endpoint:
+
+- `POST /participants` with JSON body `{ name, email }`
+- Behavior:
+  - returns `201` + `{ source: "created" }` for new participant
+  - returns `200` + `{ source: "existing" }` when email already exists
+- Participant records are stored with default role `participant`
+
+Security behavior:
+
+- backend validates/sanitizes `name` and `email`
+- basic in-memory rate limiting protects participant creation endpoint
+- SQL operations use parameterized statements
+
+Frontend flow:
+
+- onboarding form in `App` submits to backend instead of local-only mock creation
+- session now stores backend participant identity (`id`, `role`, `mainProjectId`)
+- backend validation/rate-limit messages are surfaced in entry form error state
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.

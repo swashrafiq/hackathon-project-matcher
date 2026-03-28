@@ -3,6 +3,7 @@ import { type FormEvent, useEffect, useState } from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
 import { HomePage } from './pages/HomePage'
 import { ProjectDetailsPage } from './pages/ProjectDetailsPage'
+import { submitParticipantEntry } from './api/participants'
 import {
   type ParticipantSession,
   isValidEmail,
@@ -35,6 +36,7 @@ function App() {
   const [nameInput, setNameInput] = useState('')
   const [emailInput, setEmailInput] = useState('')
   const [entryError, setEntryError] = useState<string | null>(null)
+  const [isSubmittingEntry, setIsSubmittingEntry] = useState(false)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -49,7 +51,7 @@ function App() {
     setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'))
   }
 
-  function handleEntrySubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleEntrySubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const normalized = normalizeParticipantInput(nameInput, emailInput)
@@ -63,18 +65,36 @@ function App() {
       return
     }
 
-    setParticipantSession(normalized)
-    setEntryError(null)
-    setNameInput('')
-    setEmailInput('')
-
     try {
-      window.localStorage.setItem(
-        PARTICIPANT_SESSION_STORAGE_KEY,
-        JSON.stringify(normalized),
-      )
-    } catch {
-      // Ignore storage errors; in-memory session still works.
+      setIsSubmittingEntry(true)
+      const response = await submitParticipantEntry(normalized.name, normalized.email)
+      const nextSession: ParticipantSession = {
+        id: response.participant.id,
+        name: response.participant.name,
+        email: response.participant.email,
+        role: response.participant.role,
+        mainProjectId: response.participant.mainProjectId,
+      }
+
+      setParticipantSession(nextSession)
+      setEntryError(null)
+      setNameInput('')
+      setEmailInput('')
+
+      try {
+        window.localStorage.setItem(
+          PARTICIPANT_SESSION_STORAGE_KEY,
+          JSON.stringify(nextSession),
+        )
+      } catch {
+        // Ignore storage errors; in-memory session still works.
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unable to submit participant entry.'
+      setEntryError(message)
+    } finally {
+      setIsSubmittingEntry(false)
     }
   }
 
@@ -154,7 +174,9 @@ function App() {
                   required
                 />
               </div>
-              <button type="submit">Enter hackathon</button>
+              <button type="submit" disabled={isSubmittingEntry}>
+                {isSubmittingEntry ? 'Entering...' : 'Enter hackathon'}
+              </button>
               {entryError ? (
                 <p role="alert" className="entry-error-text">
                   {entryError}

@@ -5,6 +5,8 @@ import { createApp } from './app'
 describe('backend health endpoint', () => {
   afterEach(() => {
     delete process.env.CORS_ORIGINS
+    delete process.env.RATE_LIMIT_WINDOW_MS
+    delete process.env.RATE_LIMIT_PARTICIPANT_MAX
   })
 
   it('returns API health payload', async () => {
@@ -65,5 +67,63 @@ describe('backend health endpoint', () => {
 
     expect(response.status).toBe(400)
     expect(response.body.error).toBe('Invalid project id format.')
+  })
+
+  it('creates participant on first entry and returns existing on repeat', async () => {
+    const app = createApp()
+    const uniqueEmail = `sam.${Date.now()}@example.com`
+
+    const created = await request(app).post('/participants').send({
+      name: 'Sam Jordan',
+      email: uniqueEmail,
+    })
+    expect(created.status).toBe(201)
+    expect(created.body.source).toBe('created')
+    expect(created.body.participant.role).toBe('participant')
+
+    const existing = await request(app).post('/participants').send({
+      name: 'Sam Updated',
+      email: uniqueEmail,
+    })
+    expect(existing.status).toBe(200)
+    expect(existing.body.source).toBe('existing')
+    expect(existing.body.participant.id).toBe(created.body.participant.id)
+    expect(existing.body.participant.name).toBe('Sam Jordan')
+  })
+
+  it('rate limits participant entry attempts by client identity', async () => {
+    process.env.RATE_LIMIT_PARTICIPANT_MAX = '2'
+    process.env.RATE_LIMIT_WINDOW_MS = '60000'
+    const app = createApp()
+
+    const base = Date.now()
+    const first = await request(app)
+      .post('/participants')
+      .set('x-forwarded-for', '203.0.113.8')
+      .send({
+        name: 'Rate One',
+        email: `rate.one.${base}@example.com`,
+      })
+    expect(first.status).toBe(201)
+
+    const second = await request(app)
+      .post('/participants')
+      .set('x-forwarded-for', '203.0.113.8')
+      .send({
+        name: 'Rate Two',
+        email: `rate.two.${base}@example.com`,
+      })
+    expect(second.status).toBe(201)
+
+    const third = await request(app)
+      .post('/participants')
+      .set('x-forwarded-for', '203.0.113.8')
+      .send({
+        name: 'Rate Three',
+        email: `rate.three.${base}@example.com`,
+      })
+
+    expect(third.status).toBe(429)
+    expect(third.body.error).toBe('Too many participant attempts. Try again soon.')
   })
 })

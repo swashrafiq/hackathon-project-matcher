@@ -1,12 +1,23 @@
 import cors, { type CorsOptions } from 'cors'
 import express from 'express'
 import helmet from 'helmet'
+import { createParticipant, getParticipantByEmail } from './db/participantsRepository'
 import { runMigrations } from './db/migrate'
 import { seedDevelopmentData } from './db/seed'
 import { getProjectById, listProjects } from './db/projectsRepository'
 
 const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
 const PROJECT_ID_PATTERN = /^[a-z0-9][a-z0-9-]{1,62}$/
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function sanitizeText(value: string): string {
+  return value.replace(/[<>"']/g, '').trim()
+}
+
+interface ParticipantRateLimitEntry {
+  count: number
+  windowStart: number
+}
 
 function readAllowedOrigins(): Set<string> {
   const configuredOrigins = process.env.CORS_ORIGINS
@@ -40,6 +51,7 @@ export function createApp() {
   const allowedOrigins = readAllowedOrigins()
 
   app.disable('x-powered-by')
+  app.use(express.json({ limit: '10kb' }))
   app.use(helmet())
   app.use(
     cors({
@@ -74,6 +86,64 @@ export function createApp() {
     }
 
     res.status(200).json({ project })
+  })
+
+  const participantRateLimits = new Map<string, ParticipantRateLimitEntry>()
+  const participantRateWindowMs = Number.parseInt(
+    process.env.RATE_LIMIT_WINDOW_MS || '60000',
+    10,
+  )
+  const participantRateMax = Number.parseInt(
+    process.env.RATE_LIMIT_PARTICIPANT_MAX || '8',
+    10,
+  )
+
+  app.post('/participants', (req, res) => {
+    const clientKey = req.get('x-forwarded-for')?.split(',')[0].trim() || req.ip || 'unknown'
+    const now = Date.now()
+    const existingRate = participantRateLimits.get(clientKey)
+    const isWithinWindow =
+      existingRate && now - existingRate.windowStart < participantRateWindowMs
+
+    if (isWithinWindow && existingRate.count >= participantRateMax) {
+      res.status(429).json({ error: 'Too many participant attempts. Try again soon.' })
+      return
+    }
+
+    const nextRate: ParticipantRateLimitEntry = isWithinWindow
+      ? { windowStart: existingRate.windowStart, count: existingRate.count + 1 }
+      : { windowStart: now, count: 1 }
+    participantRateLimits.set(clientKey, nextRate)
+
+    for (const [key, value] of participantRateLimits.entries()) {
+      if (now - value.windowStart >= participantRateWindowMs) {
+        participantRateLimits.delete(key)
+      }
+    }
+
+    const rawName = typeof req.body?.name === 'string' ? req.body.name : ''
+    const rawEmail = typeof req.body?.email === 'string' ? req.body.email : ''
+    const normalizedName = sanitizeText(rawName)
+    const normalizedEmail = sanitizeText(rawEmail).toLowerCase()
+
+    if (!normalizedName) {
+      res.status(400).json({ error: 'Please enter your name.' })
+      return
+    }
+
+    if (!EMAIL_PATTERN.test(normalizedEmail)) {
+      res.status(400).json({ error: 'Please enter a valid email address.' })
+      return
+    }
+
+    const existingParticipant = getParticipantByEmail(normalizedEmail)
+    if (existingParticipant) {
+      res.status(200).json({ participant: existingParticipant, source: 'existing' })
+      return
+    }
+
+    const participant = createParticipant(normalizedName, normalizedEmail)
+    res.status(201).json({ participant, source: 'created' })
   })
 
   return app
