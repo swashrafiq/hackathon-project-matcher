@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { getApiBaseUrl } from '../config/runtimeConfig'
 import { ProjectCard } from '../components/ProjectCard'
 import { getMockProjects } from '../data/mockRepository'
 import type { Project } from '../types/models'
@@ -30,7 +31,10 @@ export function HomePage({
   return (
     <section>
       <h1>Hello Hackathon Project Matcher</h1>
-      <p>Step 9 complete: onboarding and action gating are now available.</p>
+      <p>Step 10 complete: backend scaffold and API config are now available.</p>
+      <p>
+        Configured backend base URL: <code>{getApiBaseUrl()}</code>
+      </p>
       {!canPerformProjectActions ? (
         <p role="status">
           Enter your name and email above to enable project actions like Join.

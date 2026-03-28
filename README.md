@@ -152,6 +152,50 @@ Known limitations in this step:
 - "Join project" remains mocked and non-persistent until membership API steps
 - Local storage can be cleared manually by the user/browser at any time
 
+## Backend Scaffold (Step 10)
+
+Backend runtime:
+
+- Stack: Node.js + Express (`backend/app.ts`, `backend/server.ts`)
+- Health endpoint: `GET /health`
+- Default local API URL: `http://127.0.0.1:8787`
+
+Security baseline:
+
+- `helmet` enabled for basic HTTP security headers
+- CORS allowlist with `CORS_ORIGINS` env var (comma-separated origins)
+- `x-powered-by` header disabled
+
+Frontend connection:
+
+- API base URL config in `src/config/runtimeConfig.ts`
+- Health client smoke helper in `src/api/health.ts`
+
+Architecture (Step 10):
+
+```mermaid
+flowchart LR
+  Browser["React frontend (Vite)"] -->|GET /health| API["Express API"]
+  API --> Browser
+```
+
+Local run instructions:
+
+```bash
+# 1) Frontend
+npm run dev
+
+# 2) Backend API (separate terminal)
+npm run dev:server
+```
+
+Validation commands:
+
+```bash
+npm run test
+npm run lint
+npm run build
+```
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.

@@ -163,12 +163,12 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 ## Phase 2 - Real Backend Basics
 
 ### Step 10 - Backend scaffold
-- [ ] Add minimal backend service (Node/Express or preferred lightweight stack).
-- [ ] Add health endpoint.
-- [ ] Connect frontend to backend base URL config.
-- [ ] Test: backend health endpoint test + frontend integration smoke test.
-- [ ] Security: enable basic security headers/CORS allowlist.
-- [ ] Documentation: add architecture diagram and local run instructions.
+- [x] Add minimal backend service (Node/Express or preferred lightweight stack).
+- [x] Add health endpoint.
+- [x] Connect frontend to backend base URL config.
+- [x] Test: backend health endpoint test + frontend integration smoke test.
+- [x] Security: enable basic security headers/CORS allowlist.
+- [x] Documentation: add architecture diagram and local run instructions.
 
 ### Step 11 - Database setup and migrations
 - [ ] Add database (SQLite/Postgres) and migration tooling.
