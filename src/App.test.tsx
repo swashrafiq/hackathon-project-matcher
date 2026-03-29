@@ -395,7 +395,9 @@ describe('App', () => {
   })
 
   it('clears stale session and asks user to sign in again on unauthorized action', async () => {
-    const baseImplementation = fetchMock.getMockImplementation()
+    const baseImplementation = fetchMock.getMockImplementation() as
+      | ((input: RequestInfo | URL, init?: RequestInit) => Promise<Response>)
+      | undefined
     fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       if (url.endsWith('/projects/proj-smart-schedule/join') && init?.method === 'POST') {
