@@ -31,6 +31,25 @@ function App() {
   const [watchedProjectIds, setWatchedProjectIds] = useState<string[]>([])
   const [watchSubmittingProjectId, setWatchSubmittingProjectId] = useState<string | null>(null)
 
+  function expireSessionForReauth(): void {
+    setWatchedProjectIds([])
+    clearParticipantSession()
+    setEntryError('Session expired. Please sign in again.')
+  }
+
+  function rethrowWithSessionHandling(error: unknown): never {
+    if (error instanceof Error && error.message.includes('Unauthorized session.')) {
+      expireSessionForReauth()
+      throw new Error('Session expired. Please sign in again.')
+    }
+
+    if (error instanceof Error) {
+      throw error
+    }
+
+    throw new Error('Unexpected request failure.')
+  }
+
   useEffect(() => {
     if (!participantSession) {
       setWatchedProjectIds([])
@@ -45,9 +64,12 @@ function App() {
         }
         setWatchedProjectIds(ids)
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (!isMounted) {
           return
+        }
+        if (error instanceof Error && error.message.includes('Unauthorized session.')) {
+          expireSessionForReauth()
         }
         setWatchedProjectIds([])
       })
@@ -106,19 +128,23 @@ function App() {
       throw new Error('Please enter your name and email first.')
     }
 
-    const response = await joinProject(
-      projectId,
-      participantSession.id,
-      participantSession.sessionToken,
-    )
-    const nextSession: ParticipantSession = {
-      ...participantSession,
-      mainProjectId: response.participant.mainProjectId,
+    try {
+      const response = await joinProject(
+        projectId,
+        participantSession.id,
+        participantSession.sessionToken,
+      )
+      const nextSession: ParticipantSession = {
+        ...participantSession,
+        mainProjectId: response.participant.mainProjectId,
+      }
+
+      setParticipantSession(nextSession)
+
+      return response.source
+    } catch (error) {
+      rethrowWithSessionHandling(error)
     }
-
-    setParticipantSession(nextSession)
-
-    return response.source
   }
 
   async function handleLeaveProject(projectId: string): Promise<'left'> {
@@ -126,19 +152,23 @@ function App() {
       throw new Error('Please enter your name and email first.')
     }
 
-    const response = await leaveProject(
-      projectId,
-      participantSession.id,
-      participantSession.sessionToken,
-    )
-    const nextSession: ParticipantSession = {
-      ...participantSession,
-      mainProjectId: response.participant.mainProjectId,
+    try {
+      const response = await leaveProject(
+        projectId,
+        participantSession.id,
+        participantSession.sessionToken,
+      )
+      const nextSession: ParticipantSession = {
+        ...participantSession,
+        mainProjectId: response.participant.mainProjectId,
+      }
+
+      setParticipantSession(nextSession)
+
+      return response.source
+    } catch (error) {
+      rethrowWithSessionHandling(error)
     }
-
-    setParticipantSession(nextSession)
-
-    return response.source
   }
 
   async function handleSwitchProject(
@@ -148,19 +178,23 @@ function App() {
       throw new Error('Please enter your name and email first.')
     }
 
-    const response = await switchProject(
-      projectId,
-      participantSession.id,
-      participantSession.sessionToken,
-    )
-    const nextSession: ParticipantSession = {
-      ...participantSession,
-      mainProjectId: response.participant.mainProjectId,
+    try {
+      const response = await switchProject(
+        projectId,
+        participantSession.id,
+        participantSession.sessionToken,
+      )
+      const nextSession: ParticipantSession = {
+        ...participantSession,
+        mainProjectId: response.participant.mainProjectId,
+      }
+
+      setParticipantSession(nextSession)
+
+      return response.source
+    } catch (error) {
+      rethrowWithSessionHandling(error)
     }
-
-    setParticipantSession(nextSession)
-
-    return response.source
   }
 
   async function handleToggleWatch(projectId: string): Promise<void> {
@@ -183,6 +217,8 @@ function App() {
           )
 
       setWatchedProjectIds(nextWatchedProjectIds)
+    } catch (error) {
+      rethrowWithSessionHandling(error)
     } finally {
       setWatchSubmittingProjectId(null)
     }
@@ -198,16 +234,20 @@ function App() {
       throw new Error('Please enter your name and email first.')
     }
 
-    const response = await createProjectByParticipant(
-      participantSession.id,
-      participantSession.sessionToken,
-      input,
-    )
-    const nextSession: ParticipantSession = {
-      ...participantSession,
-      mainProjectId: response.participant.mainProjectId,
+    try {
+      const response = await createProjectByParticipant(
+        participantSession.id,
+        participantSession.sessionToken,
+        input,
+      )
+      const nextSession: ParticipantSession = {
+        ...participantSession,
+        mainProjectId: response.participant.mainProjectId,
+      }
+      setParticipantSession(nextSession)
+    } catch (error) {
+      rethrowWithSessionHandling(error)
     }
-    setParticipantSession(nextSession)
   }
 
   async function handleCompleteProject(projectId: string): Promise<void> {
@@ -215,11 +255,15 @@ function App() {
       throw new Error('Please enter your name and email first.')
     }
 
-    await completeProjectAsAdmin(
-      projectId,
-      participantSession.id,
-      participantSession.sessionToken,
-    )
+    try {
+      await completeProjectAsAdmin(
+        projectId,
+        participantSession.id,
+        participantSession.sessionToken,
+      )
+    } catch (error) {
+      rethrowWithSessionHandling(error)
+    }
   }
 
   return (
