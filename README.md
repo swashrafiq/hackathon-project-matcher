@@ -72,12 +72,12 @@ npm run build
 
 ### Deploy Backend API + Database
 
-The frontend alone cannot load projects in production. You also need a live backend API with a persistent database.
+The frontend alone cannot load projects in production. You also need a live backend API.
 
 Recommended setup (already scaffolded in this repo):
 
 - Platform: Render web service using `render.yaml`
-- Database: SQLite file persisted on a Render disk at `/var/data/hackathon.sqlite`
+- Database (free-tier compatible): SQLite at `/tmp/hackathon.sqlite` (ephemeral)
 - Startup: `npm run server:start:prod` (runs migrations + seed before server boot)
 
 Steps:
@@ -90,6 +90,12 @@ Steps:
 4. Deploy and verify `GET /health` on your backend URL.
 5. Set `VITE_API_BASE_URL` in your frontend host (GitHub Pages build env or Vercel env) to the deployed backend URL.
 6. Redeploy frontend so the built app points to the live API.
+
+Note:
+
+- On Render free tier, SQLite in `/tmp` is reset when the service restarts/redeploys.
+- This is fine for demo availability (seed data is restored on startup), but user-created data is not durable.
+- For persistent production data, move to a paid disk-enabled service or external database.
 
 ### Smoke Checklist
 
