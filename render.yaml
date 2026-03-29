@@ -12,6 +12,8 @@ services:
         value: 10000
       - key: DATABASE_PATH
         value: /tmp/hackathon.sqlite
+      - key: SESSION_SECRET
+        sync: false
       - key: CORS_ORIGINS
         sync: false
       - key: RATE_LIMIT_WINDOW_MS
