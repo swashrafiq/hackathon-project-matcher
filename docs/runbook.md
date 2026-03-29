@@ -26,13 +26,18 @@ npm run dev
 
 - Config source: `render.yaml`
 - Start command: `npm run server:start:prod`
-- Persistent DB: `/var/data/hackathon.sqlite` mounted from Render disk
+- DB path (free-tier compatible): `/tmp/hackathon.sqlite` (ephemeral)
 
 Required production env:
 
 - `CORS_ORIGINS`: comma-separated frontend origins that may call the API
 - `API_HOST=0.0.0.0`
 - `API_PORT=10000` (Render default internal port)
+
+Persistence caveat:
+
+- Render free web services do not support attached disks.
+- SQLite at `/tmp` resets on restart/redeploy; startup seed repopulates baseline records.
 
 Frontend deployment note:
 
