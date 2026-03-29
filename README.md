@@ -70,6 +70,27 @@ npm run build
 - Trigger: push to `main` (or manual dispatch)
 - Live URL: [https://swashrafiq.github.io/hackathon-project-matcher/](https://swashrafiq.github.io/hackathon-project-matcher/)
 
+### Deploy Backend API + Database
+
+The frontend alone cannot load projects in production. You also need a live backend API with a persistent database.
+
+Recommended setup (already scaffolded in this repo):
+
+- Platform: Render web service using `render.yaml`
+- Database: SQLite file persisted on a Render disk at `/var/data/hackathon.sqlite`
+- Startup: `npm run server:start:prod` (runs migrations + seed before server boot)
+
+Steps:
+
+1. Create a new Render **Blueprint** (or Web Service) from this repository.
+2. Ensure `render.yaml` is picked up.
+3. Set `CORS_ORIGINS` in Render to include your frontend domain(s), for example:
+   - `https://swashrafiq.github.io`
+   - `https://hackaton-delta-weld.vercel.app`
+4. Deploy and verify `GET /health` on your backend URL.
+5. Set `VITE_API_BASE_URL` in your frontend host (GitHub Pages build env or Vercel env) to the deployed backend URL.
+6. Redeploy frontend so the built app points to the live API.
+
 ### Smoke Checklist
 
 - Deployed page loads successfully over HTTPS.
@@ -427,3 +448,5 @@ Observability and reliability:
 
 - Copy `.env.example` to `.env.local` when adding local variables.
 - Do not commit secrets.
+- In production frontend builds, set `VITE_API_BASE_URL` to your deployed backend URL.
+- In production backend, set `CORS_ORIGINS` to your exact frontend origins.

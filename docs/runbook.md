@@ -22,10 +22,26 @@ npm run dev
   - create project
   - admin complete project
 
+## Production Startup (Render Blueprint)
+
+- Config source: `render.yaml`
+- Start command: `npm run server:start:prod`
+- Persistent DB: `/var/data/hackathon.sqlite` mounted from Render disk
+
+Required production env:
+
+- `CORS_ORIGINS`: comma-separated frontend origins that may call the API
+- `API_HOST=0.0.0.0`
+- `API_PORT=10000` (Render default internal port)
+
+Frontend deployment note:
+
+- Set `VITE_API_BASE_URL` to your live backend URL before frontend build/deploy.
+
 ## Common Failure Modes
 
 - **Frontend shows "Unable to load projects right now."**
-  - Backend not running or wrong `VITE_API_BASE_URL`.
+  - Backend not running, wrong `VITE_API_BASE_URL`, or backend CORS missing frontend origin.
 - **Join blocked unexpectedly**
   - User already has a main project, project is full, or project is completed.
 - **Admin complete rejected**

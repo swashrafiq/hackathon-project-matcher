@@ -18,6 +18,7 @@
     "test:watch": "vitest",
     "audit:ci": "npm audit --audit-level=high",
     "server:start": "tsx backend/server.ts",
+    "server:start:prod": "npm run db:migrate && npm run db:seed && npm run server:start",
     "preview": "vite preview"
   },
   "dependencies": {
