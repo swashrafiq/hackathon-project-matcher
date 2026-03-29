@@ -116,16 +116,17 @@ export function ProjectDetailsPage({
   }
 
   async function handleWatchToggle() {
-    if (!onToggleWatch) {
+    if (!onToggleWatch || !project) {
       return
     }
 
     setWatchError(null)
     setWatchMessage(null)
-    const wasWatched = watchedProjectIds.includes(project.id)
+    const projectId = project.id
+    const wasWatched = watchedProjectIds.includes(projectId)
 
     try {
-      await onToggleWatch(project.id)
+      await onToggleWatch(projectId)
       setWatchMessage(wasWatched ? 'Project removed from watchlist.' : 'Project added to watchlist.')
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to update watchlist right now.'
