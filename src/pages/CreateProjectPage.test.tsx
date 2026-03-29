@@ -27,6 +27,7 @@ describe('CreateProjectPage', () => {
             email: 'joiner@example.com',
             role: 'participant',
             mainProjectId: null,
+            sessionToken: 'session-token',
           }}
           onCreateProject={vi.fn(async () => undefined)}
         />
@@ -50,6 +51,7 @@ describe('CreateProjectPage', () => {
             email: 'joiner@example.com',
             role: 'participant',
             mainProjectId: null,
+            sessionToken: 'session-token',
           }}
           onCreateProject={onCreateProject}
         />

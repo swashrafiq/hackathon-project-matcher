@@ -20,10 +20,14 @@ function ensureIds(payload: Partial<WatchesResponse>): string[] {
 
 export async function fetchWatchedProjectIds(
   participantId: string,
+  sessionToken: string,
   fetcher: Fetcher = fetch,
 ): Promise<string[]> {
   const response = await fetcher(`${getApiBaseUrl()}/participants/${participantId}/watches`, {
-    headers: { Accept: 'application/json' },
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
+    },
   })
 
   const payload = (await response.json()) as Partial<WatchesResponse & ErrorResponse>
@@ -37,6 +41,7 @@ export async function fetchWatchedProjectIds(
 export async function watchProjectByParticipant(
   participantId: string,
   projectId: string,
+  sessionToken: string,
   fetcher: Fetcher = fetch,
 ): Promise<string[]> {
   const response = await fetcher(
@@ -45,6 +50,7 @@ export async function watchProjectByParticipant(
       method: 'POST',
       headers: {
         Accept: 'application/json',
+        Authorization: `Bearer ${sessionToken}`,
       },
     },
   )
@@ -60,6 +66,7 @@ export async function watchProjectByParticipant(
 export async function unwatchProjectByParticipant(
   participantId: string,
   projectId: string,
+  sessionToken: string,
   fetcher: Fetcher = fetch,
 ): Promise<string[]> {
   const response = await fetcher(
@@ -68,6 +75,7 @@ export async function unwatchProjectByParticipant(
       method: 'DELETE',
       headers: {
         Accept: 'application/json',
+        Authorization: `Bearer ${sessionToken}`,
       },
     },
   )

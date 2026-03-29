@@ -15,6 +15,7 @@ interface ErrorResponse {
 export async function completeProjectAsAdmin(
   projectId: string,
   participantId: string,
+  sessionToken: string,
   fetcher: Fetcher = fetch,
 ): Promise<CompleteProjectResponse> {
   const response = await fetcher(`${getApiBaseUrl()}/projects/${projectId}/complete`, {
@@ -22,6 +23,7 @@ export async function completeProjectAsAdmin(
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
     },
     body: JSON.stringify({ participantId }),
   })

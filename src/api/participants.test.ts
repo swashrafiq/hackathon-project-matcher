@@ -16,6 +16,7 @@ describe('participants API client', () => {
             mainProjectId: null,
           },
           source: 'created',
+          sessionToken: 'session-token-1',
         }),
         { status: 201, headers: { 'Content-Type': 'application/json' } },
       )
@@ -25,6 +26,7 @@ describe('participants API client', () => {
     expect(fetchMock).toHaveBeenCalledOnce()
     expect(response.source).toBe('created')
     expect(response.participant.role).toBe('participant')
+    expect(response.sessionToken).toBe('session-token-1')
 
     vi.unstubAllEnvs()
   })

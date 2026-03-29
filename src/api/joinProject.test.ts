@@ -21,7 +21,7 @@ describe('join project API client', () => {
       )
     })
 
-    const response = await joinProject('proj-team-finder', 'user-test', fetchMock)
+    const response = await joinProject('proj-team-finder', 'user-test', 'session-token', fetchMock)
 
     expect(fetchMock).toHaveBeenCalledOnce()
     expect(response.source).toBe('joined')
@@ -42,7 +42,7 @@ describe('join project API client', () => {
       )
     })
 
-    await expect(joinProject('proj-team-finder', 'user-test', fetchMock)).rejects.toThrow(
+    await expect(joinProject('proj-team-finder', 'user-test', 'session-token', fetchMock)).rejects.toThrow(
       'You already have a main project. Leave or switch before joining another.',
     )
 

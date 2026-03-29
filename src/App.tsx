@@ -38,7 +38,7 @@ function App() {
     }
 
     let isMounted = true
-    fetchWatchedProjectIds(participantSession.id)
+    fetchWatchedProjectIds(participantSession.id, participantSession.sessionToken)
       .then((ids) => {
         if (!isMounted) {
           return
@@ -80,6 +80,7 @@ function App() {
         email: response.participant.email,
         role: response.participant.role,
         mainProjectId: response.participant.mainProjectId,
+        sessionToken: response.sessionToken,
       }
 
       setParticipantSession(nextSession)
@@ -105,7 +106,11 @@ function App() {
       throw new Error('Please enter your name and email first.')
     }
 
-    const response = await joinProject(projectId, participantSession.id)
+    const response = await joinProject(
+      projectId,
+      participantSession.id,
+      participantSession.sessionToken,
+    )
     const nextSession: ParticipantSession = {
       ...participantSession,
       mainProjectId: response.participant.mainProjectId,
@@ -121,7 +126,11 @@ function App() {
       throw new Error('Please enter your name and email first.')
     }
 
-    const response = await leaveProject(projectId, participantSession.id)
+    const response = await leaveProject(
+      projectId,
+      participantSession.id,
+      participantSession.sessionToken,
+    )
     const nextSession: ParticipantSession = {
       ...participantSession,
       mainProjectId: response.participant.mainProjectId,
@@ -139,7 +148,11 @@ function App() {
       throw new Error('Please enter your name and email first.')
     }
 
-    const response = await switchProject(projectId, participantSession.id)
+    const response = await switchProject(
+      projectId,
+      participantSession.id,
+      participantSession.sessionToken,
+    )
     const nextSession: ParticipantSession = {
       ...participantSession,
       mainProjectId: response.participant.mainProjectId,
@@ -158,8 +171,16 @@ function App() {
     setWatchSubmittingProjectId(projectId)
     try {
       const nextWatchedProjectIds = watchedProjectIds.includes(projectId)
-        ? await unwatchProjectByParticipant(participantSession.id, projectId)
-        : await watchProjectByParticipant(participantSession.id, projectId)
+        ? await unwatchProjectByParticipant(
+            participantSession.id,
+            projectId,
+            participantSession.sessionToken,
+          )
+        : await watchProjectByParticipant(
+            participantSession.id,
+            projectId,
+            participantSession.sessionToken,
+          )
 
       setWatchedProjectIds(nextWatchedProjectIds)
     } finally {
@@ -177,7 +198,11 @@ function App() {
       throw new Error('Please enter your name and email first.')
     }
 
-    const response = await createProjectByParticipant(participantSession.id, input)
+    const response = await createProjectByParticipant(
+      participantSession.id,
+      participantSession.sessionToken,
+      input,
+    )
     const nextSession: ParticipantSession = {
       ...participantSession,
       mainProjectId: response.participant.mainProjectId,
@@ -190,7 +215,11 @@ function App() {
       throw new Error('Please enter your name and email first.')
     }
 
-    await completeProjectAsAdmin(projectId, participantSession.id)
+    await completeProjectAsAdmin(
+      projectId,
+      participantSession.id,
+      participantSession.sessionToken,
+    )
   }
 
   return (

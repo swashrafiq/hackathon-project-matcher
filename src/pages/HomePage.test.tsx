@@ -100,6 +100,7 @@ describe('HomePage', () => {
             email: 'joiner@example.com',
             role: 'participant',
             mainProjectId: null,
+            sessionToken: 'session-token',
           }}
           onJoinProject={onJoinProject}
         />
@@ -132,6 +133,7 @@ describe('HomePage', () => {
             email: 'joiner@example.com',
             role: 'participant',
             mainProjectId: null,
+            sessionToken: 'session-token',
           }}
           onJoinProject={vi.fn(async () => 'joined' as const)}
         />
@@ -158,6 +160,7 @@ describe('HomePage', () => {
             email: 'joiner@example.com',
             role: 'participant',
             mainProjectId: 'proj-smart-schedule',
+            sessionToken: 'session-token',
           }}
           onLeaveProject={onLeaveProject}
           onSwitchProject={vi.fn(async () => 'switched' as const)}
@@ -187,6 +190,7 @@ describe('HomePage', () => {
             email: 'joiner@example.com',
             role: 'participant',
             mainProjectId: 'proj-smart-schedule',
+            sessionToken: 'session-token',
           }}
           onLeaveProject={vi.fn(async () => 'left' as const)}
           onSwitchProject={onSwitchProject}
@@ -218,6 +222,7 @@ describe('HomePage', () => {
             email: 'joiner@example.com',
             role: 'participant',
             mainProjectId: 'proj-smart-schedule',
+            sessionToken: 'session-token',
           }}
           onLeaveProject={vi.fn(async () => 'left' as const)}
           onSwitchProject={onSwitchProject}
@@ -246,6 +251,7 @@ describe('HomePage', () => {
             email: 'joiner@example.com',
             role: 'participant',
             mainProjectId: null,
+            sessionToken: 'session-token',
           }}
           watchedProjectIds={[]}
           onToggleWatch={onToggleWatch}

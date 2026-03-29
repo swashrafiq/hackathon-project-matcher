@@ -1,6 +1,7 @@
 import cors, { type CorsOptions } from 'cors'
-import express from 'express'
+import express, { type NextFunction, type Request, type Response } from 'express'
 import helmet from 'helmet'
+import { randomUUID } from 'node:crypto'
 import {
   createParticipant,
   getParticipantByEmail,
@@ -9,6 +10,7 @@ import {
 import { runMigrations } from './db/migrate'
 import { seedDevelopmentData } from './db/seed'
 import {
+  CreateProjectError,
   createProject,
   getProjectById,
   listProjects,
@@ -37,6 +39,12 @@ import {
 import { logAction, reportError } from './observability'
 
 const DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
+const EXTENDED_LOCAL_ORIGINS = [
+  'http://localhost:5174',
+  'http://127.0.0.1:5174',
+  'http://localhost:5175',
+  'http://127.0.0.1:5175',
+]
 
 function getParticipantIdFromBody(body: unknown): string {
   const rawParticipantId =
@@ -52,6 +60,10 @@ interface ParticipantRateLimitEntry {
   windowStart: number
 }
 
+interface SessionEntry {
+  participantId: string
+}
+
 function readAllowedOrigins(): Set<string> {
   const configuredOrigins = process.env.CORS_ORIGINS
     ?.split(',')
@@ -60,7 +72,7 @@ function readAllowedOrigins(): Set<string> {
 
   const origins = configuredOrigins?.length
     ? configuredOrigins
-    : DEFAULT_ALLOWED_ORIGINS
+    : [...DEFAULT_ALLOWED_ORIGINS, ...EXTENDED_LOCAL_ORIGINS]
 
   return new Set(origins)
 }
@@ -132,6 +144,48 @@ export function createApp() {
     process.env.RATE_LIMIT_PARTICIPANT_MAX || '8',
     10,
   )
+  const sessionStore = new Map<string, SessionEntry>()
+
+  function issueSessionToken(participantId: string): string {
+    const token = randomUUID()
+    sessionStore.set(token, {
+      participantId,
+    })
+    // Keep in-memory storage bounded for dev usage.
+    if (sessionStore.size > 10_000) {
+      const firstKey = sessionStore.keys().next().value
+      if (firstKey) {
+        sessionStore.delete(firstKey)
+      }
+    }
+    return token
+  }
+
+  function requireAuthorizedParticipant(
+    req: Request,
+    res: Response,
+    expectedParticipantId?: string,
+  ): string | null {
+    const authorization = req.get('authorization') || ''
+    if (!authorization.startsWith('Bearer ')) {
+      res.status(401).json({ error: 'Unauthorized session.' })
+      return null
+    }
+
+    const sessionToken = authorization.slice('Bearer '.length).trim()
+    const session = sessionStore.get(sessionToken)
+    if (!session) {
+      res.status(401).json({ error: 'Unauthorized session.' })
+      return null
+    }
+
+    if (expectedParticipantId && session.participantId !== expectedParticipantId) {
+      res.status(403).json({ error: 'You are not authorized for this participant scope.' })
+      return null
+    }
+
+    return session.participantId
+  }
 
   app.post('/participants', (req, res) => {
     const clientKey = req.get('x-forwarded-for')?.split(',')[0].trim() || req.ip || 'unknown'
@@ -173,20 +227,24 @@ export function createApp() {
 
     const existingParticipant = getParticipantByEmail(normalizedEmail)
     if (existingParticipant) {
+      const sessionToken = issueSessionToken(existingParticipant.id)
       logAction('participant_lookup_existing', {
         participantId: existingParticipant.id,
         participantEmail: existingParticipant.email,
       })
-      res.status(200).json({ participant: existingParticipant, source: 'existing' })
+      res
+        .status(200)
+        .json({ participant: existingParticipant, source: 'existing', sessionToken })
       return
     }
 
     const participant = createParticipant(normalizedName, normalizedEmail)
+    const sessionToken = issueSessionToken(participant.id)
     logAction('participant_created', {
       participantId: participant.id,
       participantEmail: participant.email,
     })
-    res.status(201).json({ participant, source: 'created' })
+    res.status(201).json({ participant, source: 'created', sessionToken })
   })
 
   app.post('/projects/:projectId/join', (req, res) => {
@@ -200,6 +258,9 @@ export function createApp() {
 
     if (!isValidUserId(participantId)) {
       res.status(400).json({ error: 'Invalid participant id format.' })
+      return
+    }
+    if (!requireAuthorizedParticipant(req, res, participantId)) {
       return
     }
 
@@ -248,6 +309,9 @@ export function createApp() {
       res.status(400).json({ error: 'Invalid participant id format.' })
       return
     }
+    if (!requireAuthorizedParticipant(req, res, participantId)) {
+      return
+    }
 
     try {
       const result = leaveParticipantProject(participantId, projectId)
@@ -289,6 +353,9 @@ export function createApp() {
       res.status(400).json({ error: 'Invalid participant id format.' })
       return
     }
+    if (!requireAuthorizedParticipant(req, res, participantId)) {
+      return
+    }
 
     try {
       const result = switchParticipantProject(participantId, projectId)
@@ -298,6 +365,7 @@ export function createApp() {
       if (error instanceof JoinProjectError) {
         if (
           error.code === 'project_full' ||
+          error.code === 'project_completed' ||
           error.code === 'no_main_project' ||
           error.code === 'membership_state_invalid'
         ) {
@@ -320,6 +388,9 @@ export function createApp() {
     const participantId = getParticipantIdFromBody(req.body)
     if (!isValidUserId(participantId)) {
       res.status(400).json({ error: 'Invalid participant id format.' })
+      return
+    }
+    if (!requireAuthorizedParticipant(req, res, participantId)) {
       return
     }
 
@@ -350,6 +421,11 @@ export function createApp() {
         participant: updatedCreator,
       })
     } catch (error) {
+      if (error instanceof CreateProjectError && error.code === 'creator_has_main_project') {
+        res.status(409).json({ error: error.message })
+        return
+      }
+
       if (error instanceof Error && error.message.includes('must be between')) {
         res.status(400).json({ error: error.message })
         return
@@ -371,6 +447,9 @@ export function createApp() {
 
     if (!isValidUserId(participantId)) {
       res.status(400).json({ error: 'Invalid participant id format.' })
+      return
+    }
+    if (!requireAuthorizedParticipant(req, res, participantId)) {
       return
     }
 
@@ -401,6 +480,9 @@ export function createApp() {
       res.status(400).json({ error: 'Invalid participant id format.' })
       return
     }
+    if (!requireAuthorizedParticipant(req, res, participantId)) {
+      return
+    }
 
     try {
       const watchedProjectIds = listWatchedProjectIds(participantId)
@@ -420,6 +502,9 @@ export function createApp() {
     const { participantId, projectId } = req.params
     if (!isValidUserId(participantId)) {
       res.status(400).json({ error: 'Invalid participant id format.' })
+      return
+    }
+    if (!requireAuthorizedParticipant(req, res, participantId)) {
       return
     }
 
@@ -452,6 +537,9 @@ export function createApp() {
       res.status(400).json({ error: 'Invalid participant id format.' })
       return
     }
+    if (!requireAuthorizedParticipant(req, res, participantId)) {
+      return
+    }
 
     if (!isValidProjectId(projectId)) {
       res.status(400).json({ error: 'Invalid project id format.' })
@@ -474,6 +562,16 @@ export function createApp() {
       reportError(error, { route: 'watch_remove', participantId, projectId })
       res.status(500).json({ error: 'Unable to unwatch project right now.' })
     }
+  })
+
+  app.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
+    if (res.headersSent) {
+      next(error)
+      return
+    }
+
+    reportError(error, { route: 'unhandled' })
+    res.status(500).json({ error: 'Unexpected server error.' })
   })
 
   return app

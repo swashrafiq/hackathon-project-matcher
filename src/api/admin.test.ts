@@ -23,7 +23,12 @@ describe('admin API client', () => {
       )
     })
 
-    const response = await completeProjectAsAdmin('proj-smart-schedule', 'admin-coordinator', fetchMock)
+    const response = await completeProjectAsAdmin(
+      'proj-smart-schedule',
+      'admin-coordinator',
+      'session-token',
+      fetchMock,
+    )
     expect(response.project.status).toBe('completed')
     expect(response.source).toBe('completed')
 

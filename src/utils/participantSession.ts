@@ -6,6 +6,7 @@ export interface ParticipantSession {
   email: string
   role: 'participant' | 'admin'
   mainProjectId: string | null
+  sessionToken: string
 }
 
 export const PARTICIPANT_SESSION_STORAGE_KEY = 'hpm-participant-session'
@@ -35,7 +36,8 @@ export function isValidParticipantSession(
     session.id.length > 0 &&
     session.name.length > 0 &&
     isValidEmail(session.email) &&
-    (session.role === 'participant' || session.role === 'admin')
+    (session.role === 'participant' || session.role === 'admin') &&
+    session.sessionToken.length > 0
   )
 }
 
@@ -52,11 +54,13 @@ export function readParticipantSession(): ParticipantSession | null {
       email?: unknown
       role?: unknown
       mainProjectId?: unknown
+      sessionToken?: unknown
     }
     if (
       typeof parsed.id !== 'string' ||
       typeof parsed.name !== 'string' ||
       typeof parsed.email !== 'string' ||
+      typeof parsed.sessionToken !== 'string' ||
       (parsed.role !== 'participant' && parsed.role !== 'admin')
     ) {
       return null
@@ -70,6 +74,7 @@ export function readParticipantSession(): ParticipantSession | null {
       role: parsed.role,
       mainProjectId:
         typeof parsed.mainProjectId === 'string' ? sanitizeText(parsed.mainProjectId) : null,
+      sessionToken: sanitizeText(parsed.sessionToken),
     }
     return isValidParticipantSession(normalized) ? normalized : null
   } catch {

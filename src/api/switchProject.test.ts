@@ -21,7 +21,7 @@ describe('switch project API client', () => {
       )
     })
 
-    const response = await switchProject('proj-team-finder', 'user-test', fetchMock)
+    const response = await switchProject('proj-team-finder', 'user-test', 'session-token', fetchMock)
 
     expect(fetchMock).toHaveBeenCalledOnce()
     expect(response.source).toBe('switched')
@@ -42,7 +42,9 @@ describe('switch project API client', () => {
       )
     })
 
-    await expect(switchProject('proj-team-finder', 'user-test', fetchMock)).rejects.toThrow(
+    await expect(
+      switchProject('proj-team-finder', 'user-test', 'session-token', fetchMock),
+    ).rejects.toThrow(
       'Project is full.',
     )
 
