@@ -298,12 +298,14 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [x] Documentation: add operational runbook basics.
 
 ### Step 26 - Release candidate and production deployment
-- [ ] Freeze MVP scope against PRD acceptance criteria.
-- [ ] Run full CI test matrix and manual smoke tests.
-- [ ] Tag release and deploy to production.
-- [ ] Test: post-deploy smoke tests on live URL.
-- [ ] Security: verify HTTPS, secure headers, and no exposed secrets in build artifacts.
-- [ ] Documentation: publish release notes and known limitations.
+- [x] Freeze MVP scope against PRD acceptance criteria.
+- [x] Run full CI test matrix and manual smoke tests.
+- [x] Tag release and deploy to production.
+- [x] Test: post-deploy smoke tests on live URL.
+- [x] Security: verify HTTPS, secure headers, and no exposed secrets in build artifacts.
+- [x] Documentation: publish release notes and known limitations.
+- [x] Release URL: `https://hackaton-delta-weld.vercel.app`
+- [x] Known limitation documented: production frontend requires `VITE_API_BASE_URL` for live backend APIs.
 
 ## MVP Completion Checklist (from PRD)
 - [x] Name + email entry is required before project actions.
