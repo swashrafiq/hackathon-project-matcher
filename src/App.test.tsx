@@ -4,11 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 
 describe('App', () => {
+  let fetchMock: ReturnType<typeof vi.fn>
+
   beforeEach(() => {
     window.localStorage.clear()
     delete document.documentElement.dataset.theme
 
-    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
 
       if (url.endsWith('/projects') && init?.method !== 'POST') {
@@ -390,5 +392,48 @@ describe('App', () => {
 
     expect(await screen.findByText(/\[Admin\]/)).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Mark project completed' })).toBeInTheDocument()
+  })
+
+  it('clears stale session and asks user to sign in again on unauthorized action', async () => {
+    const baseImplementation = fetchMock.getMockImplementation() as
+      | ((input: RequestInfo | URL, init?: RequestInit) => Promise<Response>)
+      | undefined
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      if (url.endsWith('/projects/proj-smart-schedule/join') && init?.method === 'POST') {
+        return new Response(JSON.stringify({ error: 'Unauthorized session.' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      if (!baseImplementation) {
+        throw new Error('Missing base fetch mock implementation.')
+      }
+
+      return baseImplementation(input, init)
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'Rafiq' },
+    })
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'rafiq@example.com' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Enter hackathon' }))
+    expect(await screen.findByText(/Signed in as/i)).toBeInTheDocument()
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Join project' })[0])
+
+    const alerts = await screen.findAllByRole('alert')
+    expect(alerts.some((item) => item.textContent?.includes('Session expired. Please sign in again.'))).toBe(true)
+    expect(window.localStorage.getItem('hpm-participant-session')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Enter hackathon' })).toBeInTheDocument()
   })
 })
