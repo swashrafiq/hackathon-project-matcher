@@ -12,7 +12,10 @@ async function createParticipant(app: ReturnType<typeof createApp>, label: strin
   })
 
   expect(response.status).toBe(201)
-  return response.body.participant.id as string
+  return {
+    id: response.body.participant.id as string,
+    sessionToken: response.body.sessionToken as string,
+  }
 }
 
 describe('core E2E flows', () => {
@@ -33,50 +36,79 @@ describe('core E2E flows', () => {
 
   it('runs participant flow: entry -> browse -> details -> join -> switch -> leave -> watch -> create', async () => {
     const app = createApp()
-    const participantId = await createParticipant(app, 'core')
+    const participant = await createParticipant(app, 'core')
 
     expect((await request(app).get('/projects')).status).toBe(200)
     expect((await request(app).get('/projects/proj-team-finder')).status).toBe(200)
-    expect((await request(app).post('/projects/proj-team-finder/join').send({ participantId })).status).toBe(
-      200,
-    )
     expect(
-      (await request(app).post('/projects/proj-smart-schedule/switch').send({ participantId })).status,
+      (await request(app)
+        .post('/projects/proj-team-finder/join')
+        .set('Authorization', `Bearer ${participant.sessionToken}`)
+        .send({ participantId: participant.id })).status,
     ).toBe(200)
     expect(
-      (await request(app).post('/projects/proj-smart-schedule/leave').send({ participantId })).status,
+      (await request(app)
+        .post('/projects/proj-smart-schedule/switch')
+        .set('Authorization', `Bearer ${participant.sessionToken}`)
+        .send({ participantId: participant.id })).status,
     ).toBe(200)
     expect(
-      (await request(app).post(`/participants/${participantId}/watches/proj-team-finder`)).status,
+      (await request(app)
+        .post('/projects/proj-smart-schedule/leave')
+        .set('Authorization', `Bearer ${participant.sessionToken}`)
+        .send({ participantId: participant.id })).status,
+    ).toBe(200)
+    expect(
+      (await request(app)
+        .post(`/participants/${participant.id}/watches/proj-team-finder`)
+        .set('Authorization', `Bearer ${participant.sessionToken}`)).status,
     ).toBe(200)
 
-    const create = await request(app).post('/projects').send({
-      participantId,
-      title: 'E2E Created Project',
-      description: 'End-to-end created project for flow coverage.',
-      techStack: 'TypeScript, SQLite',
-      leadName: 'E2E User',
-    })
+    const create = await request(app)
+      .post('/projects')
+      .set('Authorization', `Bearer ${participant.sessionToken}`)
+      .send({
+        participantId: participant.id,
+        title: 'E2E Created Project',
+        description: 'End-to-end created project for flow coverage.',
+        techStack: 'TypeScript, SQLite',
+        leadName: 'E2E User',
+      })
     expect(create.status).toBe(201)
   })
 
   it('runs admin flow: complete project and verify join blocked with unauthorized guard', async () => {
     const app = createApp()
-    const participantId = await createParticipant(app, 'admin')
+    const participant = await createParticipant(app, 'admin')
 
-    const unauthorizedComplete = await request(app).post('/projects/proj-team-finder/complete').send({
-      participantId,
-    })
+    const unauthorizedComplete = await request(app)
+      .post('/projects/proj-team-finder/complete')
+      .set('Authorization', `Bearer ${participant.sessionToken}`)
+      .send({
+        participantId: participant.id,
+      })
     expect(unauthorizedComplete.status).toBe(403)
 
-    const adminComplete = await request(app).post('/projects/proj-team-finder/complete').send({
-      participantId: 'admin-coordinator',
+    const admin = await request(app).post('/participants').send({
+      name: 'Admin Coordinator',
+      email: 'admin@hackathon.local',
     })
+    expect(admin.status).toBe(200)
+
+    const adminComplete = await request(app)
+      .post('/projects/proj-team-finder/complete')
+      .set('Authorization', `Bearer ${admin.body.sessionToken as string}`)
+      .send({
+        participantId: admin.body.participant.id as string,
+      })
     expect(adminComplete.status).toBe(200)
 
-    const blockedJoin = await request(app).post('/projects/proj-team-finder/join').send({
-      participantId,
-    })
+    const blockedJoin = await request(app)
+      .post('/projects/proj-team-finder/join')
+      .set('Authorization', `Bearer ${participant.sessionToken}`)
+      .send({
+        participantId: participant.id,
+      })
     expect(blockedJoin.status).toBe(409)
     expect(blockedJoin.body.error).toBe('Completed projects cannot be joined.')
   })

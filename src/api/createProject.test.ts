@@ -31,6 +31,7 @@ describe('create project API client', () => {
 
     const response = await createProjectByParticipant(
       'user-test',
+      'session-token',
       {
         title: 'New Idea',
         description: 'A longer project description for tests.',

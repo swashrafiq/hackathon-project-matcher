@@ -15,6 +15,7 @@ type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Respons
 export async function switchProject(
   projectId: string,
   participantId: string,
+  sessionToken: string,
   fetcher: Fetcher = fetch,
 ): Promise<SwitchProjectResponse> {
   const response = await fetcher(`${getApiBaseUrl()}/projects/${projectId}/switch`, {
@@ -22,6 +23,7 @@ export async function switchProject(
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
     },
     body: JSON.stringify({ participantId }),
   })

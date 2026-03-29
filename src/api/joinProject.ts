@@ -22,6 +22,7 @@ type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Respons
 export async function joinProject(
   projectId: string,
   participantId: string,
+  sessionToken: string,
   fetcher: Fetcher = fetch,
 ): Promise<JoinProjectResponse> {
   const response = await fetcher(`${getApiBaseUrl()}/projects/${projectId}/join`, {
@@ -29,6 +30,7 @@ export async function joinProject(
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
     },
     body: JSON.stringify({ participantId }),
   })

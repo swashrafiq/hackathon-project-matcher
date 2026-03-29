@@ -18,7 +18,7 @@ describe('watches API client', () => {
       )
     })
 
-    const watched = await fetchWatchedProjectIds('user-test', fetchMock)
+    const watched = await fetchWatchedProjectIds('user-test', 'session-token', fetchMock)
     expect(watched).toEqual(['proj-smart-schedule', 'proj-team-finder'])
     expect(fetchMock).toHaveBeenCalledOnce()
 
@@ -52,11 +52,13 @@ describe('watches API client', () => {
     const watchedAfterAdd = await watchProjectByParticipant(
       'user-test',
       'proj-smart-schedule',
+      'session-token',
       fetchMock,
     )
     const watchedAfterRemove = await unwatchProjectByParticipant(
       'user-test',
       'proj-smart-schedule',
+      'session-token',
       fetchMock,
     )
 

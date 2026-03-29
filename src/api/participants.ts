@@ -13,6 +13,7 @@ type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Respons
 interface ParticipantResponse {
   participant: ParticipantApiModel
   source?: 'created' | 'existing'
+  sessionToken: string
 }
 
 interface ErrorResponse {
@@ -38,12 +39,13 @@ export async function submitParticipantEntry(
     throw new Error(payload.error || 'Unable to submit participant entry.')
   }
 
-  if (!payload.participant) {
+  if (!payload.participant || typeof payload.sessionToken !== 'string' || payload.sessionToken.length === 0) {
     throw new Error('Participant response payload is invalid.')
   }
 
   return {
     participant: payload.participant,
     source: payload.source || 'existing',
+    sessionToken: payload.sessionToken,
   }
 }

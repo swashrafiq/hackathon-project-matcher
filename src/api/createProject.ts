@@ -1,5 +1,4 @@
 import { getApiBaseUrl } from '../config/runtimeConfig'
-import type { ParticipantSession } from '../utils/participantSession'
 import type { ProjectReadModel } from '../types/models'
 
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
@@ -13,7 +12,13 @@ export interface CreateProjectInput {
 
 interface CreateProjectResponse {
   project: ProjectReadModel
-  participant: ParticipantSession
+  participant: {
+    id: string
+    name: string
+    email: string
+    role: 'participant' | 'admin'
+    mainProjectId: string | null
+  }
 }
 
 interface ErrorResponse {
@@ -22,6 +27,7 @@ interface ErrorResponse {
 
 export async function createProjectByParticipant(
   participantId: string,
+  sessionToken: string,
   input: CreateProjectInput,
   fetcher: Fetcher = fetch,
 ): Promise<CreateProjectResponse> {
@@ -30,6 +36,7 @@ export async function createProjectByParticipant(
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
     },
     body: JSON.stringify({
       participantId,

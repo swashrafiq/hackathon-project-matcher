@@ -28,6 +28,18 @@ interface ProjectStatusRow {
   status: 'active' | 'completed'
 }
 
+type CreateProjectErrorCode = 'creator_has_main_project'
+
+export class CreateProjectError extends Error {
+  code: CreateProjectErrorCode
+
+  constructor(code: CreateProjectErrorCode, message: string) {
+    super(message)
+    this.name = 'CreateProjectError'
+    this.code = code
+  }
+}
+
 function mapProjectRow(row: ProjectRow): ProjectReadRecord {
   return {
     id: row.id,
@@ -133,10 +145,23 @@ export function createProject(params: {
           `
             UPDATE users
             SET main_project_id = ?
-            WHERE id = ?
+            WHERE id = ? AND main_project_id IS NULL
           `,
         )
         .run(projectId, params.creatorId)
+      const updateResult = database
+        .prepare(
+          `
+            SELECT changes() AS changes
+          `,
+        )
+        .get() as { changes: number }
+      if (updateResult.changes !== 1) {
+        throw new CreateProjectError(
+          'creator_has_main_project',
+          'You already have a main project. Leave or switch before creating.',
+        )
+      }
 
       const created = database
         .prepare(

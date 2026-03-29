@@ -74,6 +74,7 @@ describe('App', () => {
                 mainProjectId: null,
               },
               source: 'existing',
+              sessionToken: 'session-existing',
             }),
             { status: 200, headers: { 'Content-Type': 'application/json' } },
           )
@@ -90,6 +91,7 @@ describe('App', () => {
                 mainProjectId: null,
               },
               source: 'existing',
+              sessionToken: 'session-admin',
             }),
             { status: 200, headers: { 'Content-Type': 'application/json' } },
           )
@@ -105,6 +107,7 @@ describe('App', () => {
               mainProjectId: null,
             },
             source: 'created',
+            sessionToken: 'session-created',
           }),
           { status: 201, headers: { 'Content-Type': 'application/json' } },
         )
@@ -295,11 +298,13 @@ describe('App', () => {
       name: string
       email: string
       role: string
+      sessionToken: string
     }
     expect(storedSession.id).toBe('user-created')
     expect(storedSession.name).toBe('bRafiq/b')
     expect(storedSession.email).toBe('rafiq@example.com')
     expect(storedSession.role).toBe('participant')
+    expect(storedSession.sessionToken).toBe('session-created')
 
     expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
     const joinButtons = screen.getAllByRole('button', { name: 'Join project' })

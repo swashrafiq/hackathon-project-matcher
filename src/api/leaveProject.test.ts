@@ -21,7 +21,7 @@ describe('leave project API client', () => {
       )
     })
 
-    const response = await leaveProject('proj-team-finder', 'user-test', fetchMock)
+    const response = await leaveProject('proj-team-finder', 'user-test', 'session-token', fetchMock)
 
     expect(fetchMock).toHaveBeenCalledOnce()
     expect(response.source).toBe('left')

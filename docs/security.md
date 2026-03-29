@@ -2,18 +2,21 @@
 
 ## Threat Assumptions
 
-- Single-event prototype with authenticated identity represented by participant id from onboarding.
+- Single-event prototype with authenticated identity represented by server-issued session token after onboarding.
 - Attackers may submit malformed payloads, try unauthorized admin actions, or attempt SQL-style injection strings.
 - Backend is internet-reachable in deployment and must not trust client-side checks.
 
 ## Current Mitigations
 
 - Centralized backend validation (`backend/validation.ts`) for IDs, email, and create-project payload constraints.
+- Server-issued bearer session tokens are required for participant/admin mutating actions and participant-scoped watch routes.
 - Parameterized SQL statements throughout repositories.
+- Atomic creator assignment in project creation (`UPDATE users ... WHERE main_project_id IS NULL`) to prevent race-condition overwrites.
 - CORS allowlist and explicit method/header restrictions in API middleware.
 - Request body limit (`10kb`) plus Helmet security headers.
 - Server-side authorization for admin-only completion endpoint.
 - Server-side enforcement for single-main-project, capacity, and completed-project join restrictions.
+- Global JSON error middleware normalizes unexpected failures without leaking stack traces to clients.
 
 ## Logging and PII
 
