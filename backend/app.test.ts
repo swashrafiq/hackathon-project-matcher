@@ -1,6 +1,7 @@
 import { rmSync } from 'node:fs'
+import { join } from 'node:path'
 import request from 'supertest'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createApp } from './app'
 import { getDatabasePath } from './db/config'
 
@@ -15,11 +16,22 @@ describe('backend health endpoint', () => {
     return created.body.participant.id as string
   }
 
+  beforeEach(() => {
+    process.env.DATABASE_PATH = join(
+      process.cwd(),
+      'backend',
+      'data',
+      `test-app-${Date.now()}-${Math.floor(Math.random() * 10000)}.sqlite`,
+    )
+  })
+
   afterEach(() => {
+    const databasePath = getDatabasePath()
     delete process.env.CORS_ORIGINS
     delete process.env.RATE_LIMIT_WINDOW_MS
     delete process.env.RATE_LIMIT_PARTICIPANT_MAX
-    rmSync(getDatabasePath(), { force: true })
+    delete process.env.DATABASE_PATH
+    rmSync(databasePath, { force: true })
   })
 
   it('returns API health payload', async () => {
@@ -296,5 +308,152 @@ describe('backend health endpoint', () => {
       .send({ participantId: switcher })
     expect(leaveStillMain.status).toBe(200)
     expect(leaveStillMain.body.source).toBe('left')
+  })
+
+  it('allows watching multiple projects while keeping one main project', async () => {
+    const app = createApp()
+    const participantId = await createParticipantForTest(app, 'watch-multi')
+
+    const join = await request(app).post('/projects/proj-team-finder/join').send({ participantId })
+    expect(join.status).toBe(200)
+
+    const watchOne = await request(app).post(
+      `/participants/${participantId}/watches/proj-team-finder`,
+    )
+    const watchTwo = await request(app).post(
+      `/participants/${participantId}/watches/proj-smart-schedule`,
+    )
+
+    expect(watchOne.status).toBe(200)
+    expect(watchTwo.status).toBe(200)
+    expect(watchTwo.body.watchedProjectIds).toEqual([
+      'proj-smart-schedule',
+      'proj-team-finder',
+    ])
+
+    // Watching should remain independent from single-main-project constraint.
+    const blockedSecondMain = await request(app)
+      .post('/projects/proj-smart-schedule/join')
+      .send({ participantId })
+    expect(blockedSecondMain.status).toBe(409)
+    expect(blockedSecondMain.body.error).toBe(
+      'You already have a main project. Leave or switch before joining another.',
+    )
+  })
+
+  it('watches and unwatches only within participant scoped route', async () => {
+    const app = createApp()
+    const participantId = await createParticipantForTest(app, 'watch-scope')
+    const otherParticipantId = await createParticipantForTest(app, 'watch-other')
+
+    const watch = await request(app).post(
+      `/participants/${participantId}/watches/proj-smart-schedule`,
+    )
+    expect(watch.status).toBe(200)
+    expect(watch.body.source).toBe('watched')
+
+    const listAfterWatch = await request(app).get(`/participants/${participantId}/watches`)
+    expect(listAfterWatch.status).toBe(200)
+    expect(listAfterWatch.body.watchedProjectIds).toContain('proj-smart-schedule')
+
+    const otherUserUnwatch = await request(app).delete(
+      `/participants/${otherParticipantId}/watches/proj-smart-schedule`,
+    )
+    expect(otherUserUnwatch.status).toBe(200)
+
+    const listAfterOtherUnwatch = await request(app).get(`/participants/${participantId}/watches`)
+    expect(listAfterOtherUnwatch.status).toBe(200)
+    expect(listAfterOtherUnwatch.body.watchedProjectIds).toContain('proj-smart-schedule')
+
+    const unwatch = await request(app).delete(
+      `/participants/${participantId}/watches/proj-smart-schedule`,
+    )
+    expect(unwatch.status).toBe(200)
+    expect(unwatch.body.source).toBe('unwatched')
+    expect(unwatch.body.watchedProjectIds).not.toContain('proj-smart-schedule')
+  })
+
+  it('creates project with creator auto-assigned as main project member', async () => {
+    const app = createApp()
+    const participantId = await createParticipantForTest(app, 'create-project')
+
+    const createResponse = await request(app).post('/projects').send({
+      participantId,
+      title: 'Realtime Pairing Assistant',
+      description: 'Helps teams match quickly using skills and interest tags.',
+      techStack: 'React, Node.js, SQLite',
+      leadName: 'Rafiq',
+    })
+
+    expect(createResponse.status).toBe(201)
+    expect(createResponse.body.project.title).toBe('Realtime Pairing Assistant')
+    expect(createResponse.body.project.memberCount).toBe(1)
+    expect(createResponse.body.participant.mainProjectId).toBe(createResponse.body.project.id)
+  })
+
+  it('blocks creating a new project when participant already has a main project', async () => {
+    const app = createApp()
+    const participantId = await createParticipantForTest(app, 'create-project-blocked')
+
+    expect(
+      (await request(app).post('/projects/proj-team-finder/join').send({ participantId })).status,
+    ).toBe(200)
+
+    const createResponse = await request(app).post('/projects').send({
+      participantId,
+      title: 'Another Project',
+      description: 'This should be blocked because main project already exists.',
+      techStack: 'TypeScript',
+      leadName: 'Blocked User',
+    })
+
+    expect(createResponse.status).toBe(409)
+    expect(createResponse.body.error).toBe(
+      'You already have a main project. Leave or switch before creating.',
+    )
+  })
+
+  it('allows admin to mark project completed and blocks new joins afterwards', async () => {
+    const app = createApp()
+    const participantId = await createParticipantForTest(app, 'join-after-complete')
+
+    const complete = await request(app).post('/projects/proj-team-finder/complete').send({
+      participantId: 'admin-coordinator',
+    })
+    expect(complete.status).toBe(200)
+    expect(complete.body.project.status).toBe('completed')
+
+    const blockedJoin = await request(app).post('/projects/proj-team-finder/join').send({
+      participantId,
+    })
+    expect(blockedJoin.status).toBe(409)
+    expect(blockedJoin.body.error).toBe('Completed projects cannot be joined.')
+  })
+
+  it('rejects non-admin project completion requests', async () => {
+    const app = createApp()
+    const participantId = await createParticipantForTest(app, 'complete-non-admin')
+
+    const complete = await request(app).post('/projects/proj-team-finder/complete').send({
+      participantId,
+    })
+    expect(complete.status).toBe(403)
+    expect(complete.body.error).toBe('Only admin can complete projects.')
+  })
+
+  it('rejects invalid create project payload lengths', async () => {
+    const app = createApp()
+    const participantId = await createParticipantForTest(app, 'create-validation')
+
+    const createResponse = await request(app).post('/projects').send({
+      participantId,
+      title: 'x',
+      description: 'short',
+      techStack: '',
+      leadName: 'a',
+    })
+
+    expect(createResponse.status).toBe(400)
+    expect(typeof createResponse.body.error).toBe('string')
   })
 })

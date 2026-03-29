@@ -348,6 +348,81 @@ Frontend behavior:
 - when user already has a main project, non-main cards show `Switch to this project`
 - successful switch updates session `mainProjectId` and refreshes project counters
 
+## Watchlist API and UI (Step 18)
+
+Watch endpoints:
+
+- `GET /participants/:participantId/watches` -> returns `{ watchedProjectIds: string[] }`
+- `POST /participants/:participantId/watches/:projectId` -> watch project
+- `DELETE /participants/:participantId/watches/:projectId` -> unwatch project
+
+Watchlist rules:
+
+- participants can watch multiple projects regardless of their current main project
+- watch/unwatch updates only apply to the participant in the route path
+- watching does not change membership counters or `mainProjectId`
+
+Frontend integration:
+
+- watch toggle is available in both project cards and project details
+- watched projects display `You are watching this project.`
+- watchlist state is loaded per signed-in participant and updates immediately after toggle
+
+## Project Creation (Step 19-20)
+
+Project endpoint:
+
+- `POST /projects` with body `{ participantId, title, description, techStack, leadName }`
+- validates required field lengths/content server-side
+- auto-creates project as `active` with `memberCount = 1`
+- auto-assigns creator `mainProjectId` to the new project
+- returns `409` if creator already has a main project
+
+Frontend behavior:
+
+- Home page includes create form with required fields and inline validation
+- submit state and error/success messages are shown in place
+- project list refreshes after successful creation
+
+## Admin Status Controls (Step 21-22)
+
+Admin model:
+
+- seeded bootstrap admin remains `admin@hackathon.local` / `admin-coordinator`
+- signed-in admin users are visibly marked in session banner
+
+Status endpoint:
+
+- `POST /projects/:projectId/complete` with `{ participantId }` (admin only)
+- non-admin requests return `403`
+- completed projects are shown as `status: completed`
+- join/switch requests to completed projects are blocked with `409`
+
+Frontend behavior:
+
+- admin-only `Mark project completed` action shown on details page
+- non-admin users do not see completion controls
+
+## E2E, Security, and Observability (Step 23-25)
+
+Automated flows:
+
+- E2E test file: `backend/e2e.core-flow.test.ts`
+- scripts: `npm run test:e2e`
+- CI runs E2E checks for `main` branch pushes/PR targets
+
+Security hardening:
+
+- centralized validators in `backend/validation.ts`
+- stricter CORS method/header allowlist + request body limits
+- threat model and mitigation notes in `docs/security.md`
+
+Observability and reliability:
+
+- structured action logs and masked PII in `backend/observability.ts`
+- error reporting hook used for API failure paths
+- operations notes and smoke checklist in `docs/runbook.md`
+
 ## Environment Variables
 
 - Copy `.env.example` to `.env.local` when adding local variables.

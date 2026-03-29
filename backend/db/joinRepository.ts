@@ -13,6 +13,7 @@ interface ParticipantRow {
 
 interface ProjectExistsRow {
   id: string
+  status: 'active' | 'completed'
 }
 
 export type JoinResultSource = 'joined' | 'already_joined'
@@ -37,6 +38,7 @@ export interface SwitchResult {
 type JoinErrorCode =
   | 'participant_not_found'
   | 'project_not_found'
+  | 'project_completed'
   | 'project_full'
   | 'already_has_main_project'
   | 'not_current_main_project'
@@ -78,11 +80,11 @@ function getParticipant(database: DatabaseSync, participantId: string): Particip
   return row || null
 }
 
-function projectExists(database: DatabaseSync, projectId: string): boolean {
+function getProject(database: DatabaseSync, projectId: string): ProjectExistsRow | null {
   const row = database
     .prepare(
       `
-        SELECT id
+        SELECT id, status
         FROM projects
         WHERE id = ?
         LIMIT 1
@@ -90,7 +92,7 @@ function projectExists(database: DatabaseSync, projectId: string): boolean {
     )
     .get(projectId) as ProjectExistsRow | undefined
 
-  return Boolean(row)
+  return row || null
 }
 
 function incrementProjectMemberCountIfCapacity(
@@ -138,8 +140,13 @@ export function joinParticipantToProject(
       throw new JoinProjectError('participant_not_found', 'Participant not found.')
     }
 
-    if (!projectExists(database, projectId)) {
+    const project = getProject(database, projectId)
+    if (!project) {
       throw new JoinProjectError('project_not_found', 'Project not found.')
+    }
+
+    if (project.status === 'completed') {
+      throw new JoinProjectError('project_completed', 'Completed projects cannot be joined.')
     }
 
     if (participant.main_project_id === projectId) {
@@ -205,7 +212,8 @@ export function leaveParticipantProject(participantId: string, projectId: string
       throw new JoinProjectError('participant_not_found', 'Participant not found.')
     }
 
-    if (!projectExists(database, projectId)) {
+    const project = getProject(database, projectId)
+    if (!project) {
       throw new JoinProjectError('project_not_found', 'Project not found.')
     }
 
@@ -270,8 +278,13 @@ export function switchParticipantProject(
       throw new JoinProjectError('participant_not_found', 'Participant not found.')
     }
 
-    if (!projectExists(database, targetProjectId)) {
+    const targetProject = getProject(database, targetProjectId)
+    if (!targetProject) {
       throw new JoinProjectError('project_not_found', 'Project not found.')
+    }
+
+    if (targetProject.status === 'completed') {
+      throw new JoinProjectError('project_completed', 'Completed projects cannot be joined.')
     }
 
     if (!participant.main_project_id) {
