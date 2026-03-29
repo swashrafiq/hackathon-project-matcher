@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: hackathon-project-matcher-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run server:start:prod
+    envVars:
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: API_PORT
+        value: 10000
+      - key: DATABASE_PATH
+        value: /var/data/hackathon.sqlite
+      - key: CORS_ORIGINS
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 60000
+      - key: RATE_LIMIT_PARTICIPANT_MAX
+        value: 8
+    disk:
+      name: hackathon-sqlite-data
+      mountPath: /var/data
+      sizeGB: 1
