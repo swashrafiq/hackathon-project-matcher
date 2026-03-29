@@ -231,71 +231,71 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 ## Phase 4 - Watchlist + Project Creation
 
 ### Step 18 - Watch/unwatch projects
-- [ ] Add watch relation model (`user_project_watch`).
-- [ ] Implement watch/unwatch endpoints.
-- [ ] Add watch toggle on card/details.
-- [ ] Test: user can watch multiple projects while holding one main project.
-- [ ] Security: enforce user-scoped watch actions.
-- [ ] Documentation: add watchlist rules.
+- [x] Add watch relation model (`user_project_watch`).
+- [x] Implement watch/unwatch endpoints.
+- [x] Add watch toggle on card/details.
+- [x] Test: user can watch multiple projects while holding one main project.
+- [x] Security: enforce user-scoped watch actions.
+- [x] Documentation: add watchlist rules.
 
 ### Step 19 - Create project endpoint (public immediate publish)
-- [ ] Implement `POST /projects` with required fields (title, description, tech stack, lead name).
-- [ ] Auto-assign creator as member and creator's main project.
-- [ ] Prevent creator from joining another main project unless switch/give up.
-- [ ] Test: create project success + auto-assignment + rule enforcement.
-- [ ] Security: validate payload length/content and reject invalid input.
-- [ ] Documentation: add project creation API and business rules.
+- [x] Implement `POST /projects` with required fields (title, description, tech stack, lead name).
+- [x] Auto-assign creator as member and creator's main project.
+- [x] Prevent creator from joining another main project unless switch/give up.
+- [x] Test: create project success + auto-assignment + rule enforcement.
+- [x] Security: validate payload length/content and reject invalid input.
+- [x] Documentation: add project creation API and business rules.
 
 ### Step 20 - Create project UI form
-- [ ] Build "Create Project" form with required field validation.
-- [ ] Show inline errors and submit state.
-- [ ] Refresh list/details after create.
-- [ ] Test: valid submit and invalid form cases.
-- [ ] Security: escape/sanitize user-entered strings before display.
-- [ ] Documentation: add form behavior and examples.
+- [x] Build "Create Project" form with required field validation.
+- [x] Show inline errors and submit state.
+- [x] Refresh list/details after create.
+- [x] Test: valid submit and invalid form cases.
+- [x] Security: escape/sanitize user-entered strings before display.
+- [x] Documentation: add form behavior and examples.
 
 ## Phase 5 - Admin + Status Management
 
 ### Step 21 - Admin bootstrap account
-- [ ] Seed one admin user for the single event.
-- [ ] Add simple admin recognition in UI/backend.
-- [ ] Hide admin controls for non-admin users.
-- [ ] Test: role-based visibility tests.
-- [ ] Security: enforce admin authorization in backend endpoints.
-- [ ] Documentation: add admin setup and access model.
+- [x] Seed one admin user for the single event.
+- [x] Add simple admin recognition in UI/backend.
+- [x] Hide admin controls for non-admin users.
+- [x] Test: role-based visibility tests.
+- [x] Security: enforce admin authorization in backend endpoints.
+- [x] Documentation: add admin setup and access model.
 
 ### Step 22 - Mark project completed (admin only)
-- [ ] Implement admin endpoint to set project status to completed.
-- [ ] Reflect status in cards/details.
-- [ ] Block new joins to completed projects.
-- [ ] Test: completed project cannot be newly joined.
-- [ ] Security: authorize admin-only status changes + audit log entry.
-- [ ] Documentation: add status lifecycle and admin actions.
+- [x] Implement admin endpoint to set project status to completed.
+- [x] Reflect status in cards/details.
+- [x] Block new joins to completed projects.
+- [x] Test: completed project cannot be newly joined.
+- [x] Security: authorize admin-only status changes + audit log entry.
+- [x] Documentation: add status lifecycle and admin actions.
 
 ## Phase 6 - Quality, Security Hardening, and Release
 
 ### Step 23 - End-to-end core flow tests
-- [ ] Add E2E tests: entry -> browse -> details -> join -> switch -> leave -> watch -> create project.
-- [ ] Add admin E2E: mark completed and verify join blocked.
-- [ ] Run E2E in CI for main branch.
-- [ ] Security: include negative-path E2E checks for unauthorized actions.
-- [ ] Documentation: add test strategy and how to run locally.
+- [x] Add E2E tests: entry -> browse -> details -> join -> switch -> leave -> watch -> create project.
+- [x] Add admin E2E: mark completed and verify join blocked.
+- [x] Run E2E in CI for main branch.
+- [x] Security: include negative-path E2E checks for unauthorized actions.
+- [x] Documentation: add test strategy and how to run locally.
 
 ### Step 24 - Security hardening pass
-- [ ] Add centralized input validation layer for all endpoints.
-- [ ] Add stricter CORS, request size limits, and HTTP security headers.
-- [ ] Add dependency pinning/update policy and vulnerability triage process.
-- [ ] Test: security-focused tests for validation and access control failures.
-- [ ] Security: document threat assumptions and mitigations.
-- [ ] Documentation: add `docs/security.md`.
+- [x] Add centralized input validation layer for all endpoints.
+- [x] Add stricter CORS, request size limits, and HTTP security headers.
+- [x] Add dependency pinning/update policy and vulnerability triage process.
+- [x] Test: security-focused tests for validation and access control failures.
+- [x] Security: document threat assumptions and mitigations.
+- [x] Documentation: add `docs/security.md`.
 
 ### Step 25 - Observability and reliability basics
-- [ ] Add structured logging for key actions (join/switch/leave/create/complete).
-- [ ] Add basic error monitoring hook.
-- [ ] Add graceful user-facing error messages.
-- [ ] Test: simulate API failures and verify resilient UI behavior.
-- [ ] Security: avoid logging PII beyond required fields; mask sensitive values.
-- [ ] Documentation: add operational runbook basics.
+- [x] Add structured logging for key actions (join/switch/leave/create/complete).
+- [x] Add basic error monitoring hook.
+- [x] Add graceful user-facing error messages.
+- [x] Test: simulate API failures and verify resilient UI behavior.
+- [x] Security: avoid logging PII beyond required fields; mask sensitive values.
+- [x] Documentation: add operational runbook basics.
 
 ### Step 26 - Release candidate and production deployment
 - [ ] Freeze MVP scope against PRD acceptance criteria.
@@ -306,14 +306,14 @@ This checklist is designed for very small, tangible increments suitable for AI-a
 - [ ] Documentation: publish release notes and known limitations.
 
 ## MVP Completion Checklist (from PRD)
-- [ ] Name + email entry is required before project actions.
-- [ ] Project cards + details are available.
-- [ ] User can hold exactly one main project at a time.
-- [ ] User can switch or give up main project.
-- [ ] User can watch multiple projects.
-- [ ] User can create project and is auto-joined as creator.
-- [ ] Project capacity limit of 5 is enforced.
-- [ ] Admin can mark project as completed.
-- [ ] Completed projects cannot be newly joined.
-- [ ] Dark and light modes are available with toggle.
-- [ ] Desktop-first responsive behavior is verified.
+- [x] Name + email entry is required before project actions.
+- [x] Project cards + details are available.
+- [x] User can hold exactly one main project at a time.
+- [x] User can switch or give up main project.
+- [x] User can watch multiple projects.
+- [x] User can create project and is auto-joined as creator.
+- [x] Project capacity limit of 5 is enforced.
+- [x] Admin can mark project as completed.
+- [x] Completed projects cannot be newly joined.
+- [x] Dark and light modes are available with toggle.
+- [x] Desktop-first responsive behavior is verified.

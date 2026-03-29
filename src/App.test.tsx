@@ -11,7 +11,7 @@ describe('App', () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
 
-      if (url.endsWith('/projects')) {
+      if (url.endsWith('/projects') && init?.method !== 'POST') {
         return new Response(
           JSON.stringify({
             projects: [
@@ -79,6 +79,22 @@ describe('App', () => {
           )
         }
 
+        if (payload.email === 'admin@hackathon.local') {
+          return new Response(
+            JSON.stringify({
+              participant: {
+                id: 'admin-coordinator',
+                name: 'Event Coordinator',
+                email: 'admin@hackathon.local',
+                role: 'admin',
+                mainProjectId: null,
+              },
+              source: 'existing',
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          )
+        }
+
         return new Response(
           JSON.stringify({
             participant: {
@@ -91,6 +107,65 @@ describe('App', () => {
             source: 'created',
           }),
           { status: 201, headers: { 'Content-Type': 'application/json' } },
+        )
+      }
+
+      if (url.includes('/watches')) {
+        return new Response(
+          JSON.stringify({
+            watchedProjectIds: [],
+            source: 'watched',
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        )
+      }
+
+      if (url.endsWith('/projects') && init?.method === 'POST') {
+        const payload = JSON.parse(String(init?.body || '{}')) as {
+          title?: string
+          description?: string
+          techStack?: string
+          leadName?: string
+        }
+
+        return new Response(
+          JSON.stringify({
+            project: {
+              id: 'proj-created-by-test',
+              title: payload.title || 'Created',
+              description: payload.description || 'Created project description',
+              techStack: payload.techStack || 'React',
+              leadName: payload.leadName || 'Lead',
+              memberCount: 1,
+              status: 'active',
+            },
+            participant: {
+              id: 'user-created',
+              name: 'Created User',
+              email: 'created@example.com',
+              role: 'participant',
+              mainProjectId: 'proj-created-by-test',
+            },
+          }),
+          { status: 201, headers: { 'Content-Type': 'application/json' } },
+        )
+      }
+
+      if (url.endsWith('/projects/proj-smart-schedule/complete')) {
+        return new Response(
+          JSON.stringify({
+            project: {
+              id: 'proj-smart-schedule',
+              title: 'Smart Schedule Builder',
+              description: 'Generate personalized hackathon schedules from tracks and interests.',
+              techStack: 'React, TypeScript',
+              leadName: 'Nadia Khan',
+              memberCount: 3,
+              status: 'completed',
+            },
+            source: 'completed',
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
         )
       }
 
@@ -118,7 +193,7 @@ describe('App', () => {
       screen.getByRole('link', { name: 'Hackathon Project Matcher' }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: 'Hello Hackathon Project Matcher' }),
+      screen.getByRole('heading', { name: 'Discover hackathon projects' }),
     ).toBeInTheDocument()
     expect(
       screen.getByText('Single-event prototype for fast team coordination.'),
@@ -135,7 +210,7 @@ describe('App', () => {
     expect(
       await screen.findByRole('heading', { name: 'Smart Schedule Builder' }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/Tech stack:/)).toBeInTheDocument()
+    expect(screen.getByText('Tech stack')).toBeInTheDocument()
   })
 
   it('toggles theme and persists selection', () => {
@@ -248,5 +323,67 @@ describe('App', () => {
 
     expect(await screen.findByText(/Signed in as/i)).toBeInTheDocument()
     expect(screen.getByText(/Existing User/)).toBeInTheDocument()
+  })
+
+  it('navigates to create project page and submits with successful feedback', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'Rafiq' },
+    })
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'rafiq@example.com' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Enter hackathon' }))
+    expect(await screen.findByText(/Signed in as/i)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('link', { name: 'Create Project' }))
+    expect(
+      await screen.findByRole('heading', { name: 'Create a new project' }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create project' }))
+    expect(await screen.findByText('All project fields are required.')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Project title'), {
+      target: { value: 'My New Project' },
+    })
+    fireEvent.change(screen.getByLabelText('Description'), {
+      target: { value: 'Detailed project description for create flow test.' },
+    })
+    fireEvent.change(screen.getByLabelText('Tech stack'), {
+      target: { value: 'React, SQLite' },
+    })
+    fireEvent.change(screen.getByLabelText('Lead name'), {
+      target: { value: 'Rafiq' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Create project' }))
+
+    expect(await screen.findByText('Project created successfully.')).toBeInTheDocument()
+  })
+
+  it('shows admin indicator and admin-only complete action', async () => {
+    render(
+      <MemoryRouter initialEntries={['/projects/proj-smart-schedule']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(screen.queryByRole('button', { name: 'Mark project completed' })).toBeNull()
+
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'Event Coordinator' },
+    })
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'admin@hackathon.local' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Enter hackathon' }))
+
+    expect(await screen.findByText(/\[Admin\]/)).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Mark project completed' })).toBeInTheDocument()
   })
 })

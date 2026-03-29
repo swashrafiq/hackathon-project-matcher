@@ -38,7 +38,7 @@ describe('HomePage', () => {
     expect(screen.getByText('Loading projects...')).toBeInTheDocument()
     expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
     expect(screen.getByText('Team Finder')).toBeInTheDocument()
-    expect(screen.getAllByText(/Members:/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/^Members$/).length).toBeGreaterThan(0)
   })
 
   it('renders empty state when loader returns no projects', async () => {
@@ -230,4 +230,34 @@ describe('HomePage', () => {
 
     expect(await screen.findByText('Project is full.')).toBeInTheDocument()
   })
+
+  it('toggles watch and shows watch feedback', async () => {
+    const loadProjects = async (): Promise<ProjectReadModel[]> => sampleProjects
+    const onToggleWatch = vi.fn(async () => undefined)
+
+    render(
+      <MemoryRouter>
+        <HomePage
+          loadProjects={loadProjects}
+          canPerformProjectActions
+          participantSession={{
+            id: 'user-test',
+            name: 'Joiner',
+            email: 'joiner@example.com',
+            role: 'participant',
+            mainProjectId: null,
+          }}
+          watchedProjectIds={[]}
+          onToggleWatch={onToggleWatch}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('Smart Schedule Builder')).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Watch project' })[0])
+
+    expect(onToggleWatch).toHaveBeenCalledWith('proj-smart-schedule')
+    expect(await screen.findByText('Project added to watchlist.')).toBeInTheDocument()
+  })
+
 })

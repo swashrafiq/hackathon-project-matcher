@@ -51,6 +51,27 @@ export function getParticipantByEmail(email: string): ParticipantRecord | null {
   }
 }
 
+export function getParticipantById(participantId: string): ParticipantRecord | null {
+  const database = openDatabase(getDatabasePath())
+
+  try {
+    const row = database
+      .prepare(
+        `
+          SELECT id, name, email, role, main_project_id
+          FROM users
+          WHERE id = ?
+          LIMIT 1
+        `,
+      )
+      .get(participantId) as ParticipantRow | undefined
+
+    return row ? mapParticipantRow(row) : null
+  } finally {
+    database.close()
+  }
+}
+
 export function createParticipant(name: string, email: string): ParticipantRecord {
   const database = openDatabase(getDatabasePath())
 
