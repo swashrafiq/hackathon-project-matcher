@@ -1,7 +1,7 @@
 import cors, { type CorsOptions } from 'cors'
 import express, { type NextFunction, type Request, type Response } from 'express'
 import helmet from 'helmet'
-import { randomUUID } from 'node:crypto'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import {
   createParticipant,
   getParticipantByEmail,
@@ -60,9 +60,8 @@ interface ParticipantRateLimitEntry {
   windowStart: number
 }
 
-interface SessionEntry {
-  participantId: string
-}
+const DEFAULT_SESSION_SECRET = 'dev-session-secret-change-me'
+const SESSION_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000
 
 function readAllowedOrigins(): Set<string> {
   const configuredOrigins = process.env.CORS_ORIGINS
@@ -102,7 +101,7 @@ export function createApp() {
     cors({
       origin: createCorsOriginValidator(allowedOrigins),
       methods: ['GET', 'POST', 'DELETE'],
-      allowedHeaders: ['Accept', 'Content-Type'],
+      allowedHeaders: ['Accept', 'Content-Type', 'Authorization'],
     }),
   )
 
@@ -144,21 +143,51 @@ export function createApp() {
     process.env.RATE_LIMIT_PARTICIPANT_MAX || '8',
     10,
   )
-  const sessionStore = new Map<string, SessionEntry>()
+  const sessionSecret = process.env.SESSION_SECRET || DEFAULT_SESSION_SECRET
+
+  function signSessionPayload(payload: string): string {
+    return createHmac('sha256', sessionSecret).update(payload).digest('base64url')
+  }
 
   function issueSessionToken(participantId: string): string {
-    const token = randomUUID()
-    sessionStore.set(token, {
-      participantId,
-    })
-    // Keep in-memory storage bounded for dev usage.
-    if (sessionStore.size > 10_000) {
-      const firstKey = sessionStore.keys().next().value
-      if (firstKey) {
-        sessionStore.delete(firstKey)
-      }
+    const payload = JSON.stringify({ pid: participantId, iat: Date.now() })
+    const payloadBase64 = Buffer.from(payload, 'utf8').toString('base64url')
+    const signature = signSessionPayload(payloadBase64)
+    return `${payloadBase64}.${signature}`
+  }
+
+  function readParticipantIdFromToken(sessionToken: string): string | null {
+    const [payloadBase64, signature] = sessionToken.split('.')
+    if (!payloadBase64 || !signature) {
+      return null
     }
-    return token
+
+    const expectedSignature = signSessionPayload(payloadBase64)
+    const signatureBuffer = Buffer.from(signature)
+    const expectedBuffer = Buffer.from(expectedSignature)
+    if (
+      signatureBuffer.length !== expectedBuffer.length ||
+      !timingSafeEqual(signatureBuffer, expectedBuffer)
+    ) {
+      return null
+    }
+
+    try {
+      const payloadRaw = Buffer.from(payloadBase64, 'base64url').toString('utf8')
+      const payload = JSON.parse(payloadRaw) as { pid?: unknown; iat?: unknown }
+      if (typeof payload.pid !== 'string' || payload.pid.length === 0) {
+        return null
+      }
+      if (typeof payload.iat !== 'number' || !Number.isFinite(payload.iat)) {
+        return null
+      }
+      if (Date.now() - payload.iat > SESSION_TOKEN_TTL_MS) {
+        return null
+      }
+      return payload.pid
+    } catch {
+      return null
+    }
   }
 
   function requireAuthorizedParticipant(
@@ -173,18 +202,18 @@ export function createApp() {
     }
 
     const sessionToken = authorization.slice('Bearer '.length).trim()
-    const session = sessionStore.get(sessionToken)
-    if (!session) {
+    const sessionParticipantId = readParticipantIdFromToken(sessionToken)
+    if (!sessionParticipantId) {
       res.status(401).json({ error: 'Unauthorized session.' })
       return null
     }
 
-    if (expectedParticipantId && session.participantId !== expectedParticipantId) {
+    if (expectedParticipantId && sessionParticipantId !== expectedParticipantId) {
       res.status(403).json({ error: 'You are not authorized for this participant scope.' })
       return null
     }
 
-    return session.participantId
+    return sessionParticipantId
   }
 
   app.post('/participants', (req, res) => {
